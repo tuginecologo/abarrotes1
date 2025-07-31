@@ -1,0 +1,153 @@
+<%- include('../partials/header') %>
+<h1>Devolución de Venta #<%= venta.id_venta %></h1>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <p><strong>Fecha original:</strong> <%= venta.fecha.toLocaleDateString() %></p>
+        <p><strong>Vendedor original:</strong> <%= venta.vendedor %></p>
+      </div>
+      <div class="col-md-6">
+        <p><strong>Cliente:</strong> <%= venta.cliente %></p>
+        <p><strong>Total original:</strong> S/ <%= venta.total.toFixed(2) %></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form id="returnForm" action="/ventas/<%= venta.id_venta %>/devolver" method="POST">
+  <div class="form-group">
+    <label for="dnivend">Empleado que recibe la devolución</label>
+    <select class="form-control" id="dnivend" name="dnivend" required>
+      <option value="">Seleccionar empleado</option>
+      <% options.empleados.forEach(empleado => { %>
+        <option value="<%= empleado.dni %>" <%= currentUserDni === empleado.dni ? 'selected' : '' %>>
+          <%= empleado.nombre %>
+        </option>
+      <% }) %>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="motivo">Motivo de la devolución</label>
+    <textarea class="form-control" id="motivo" name="motivo" rows="3" required></textarea>
+  </div>
+<div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="mediodepago">Método de Devolución</label>
+        <select class="form-control" id="mediodepago" name="mediodepago" required>
+          <option value="">Seleccionar método</option>
+          <option value="1">Efectivo</option>
+          <option value="2">Yape</option>
+          <option value="3">Plin</option>
+          <option value="4">Transferencia</option>
+        </select>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group" id="noperacionGroup" style="display: none;">
+        <label for="noperacion">Número de Operación</label>
+        <input type="text" class="form-control" id="noperacion" name="noperacion" 
+               placeholder="Ingrese número de operación">
+      </div>
+    </div>
+  </div>
+  <h3>Productos a devolver</h3>
+  <div class="table-responsive">
+    <table class="table" id="productosTable">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio Unitario</th>
+          <th>Cantidad Comprada</th>
+          <th>Cantidad a Devolver</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% venta.detalles.forEach(detalle => { %>
+          <tr data-id="<%= detalle.id_producto %>">
+            <td><%= detalle.producto_nombre %></td>
+            <td class="precio">S/ <%= detalle.precio.toFixed(2) %></td>
+            <td><%= detalle.cantidad %></td>
+            <td>
+              <input type="number" class="form-control cantidad-input" 
+                     min="0" max="<%= detalle.cantidad %>" 
+                     value="0" data-precio="<%= detalle.precio %>">
+            </td>
+            <td class="subtotal">S/ 0.00</td>
+          </tr>
+        <% }) %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th colspan="4">Total a Devolver</th>
+          <th id="totalDevolucion">S/ 0.00</th>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <input type="hidden" name="productos" id="productosInput">
+
+  <div class="mt-3">
+    <button type="submit" class="btn btn-primary">
+      <i class="fas fa-check"></i> Registrar Devolución
+    </button>
+    <a href="/ventas/<%= venta.id_venta %>" class="btn btn-secondary">
+      <i class="fas fa-times"></i> Cancelar
+    </a>
+  </div>
+</form>
+
+<script>
+  // Calculate subtotals and total
+  function calculateTotals() {
+    let total = 0;
+    const productos = [];
+    
+    document.querySelectorAll('#productosTable tbody tr').forEach(row => {
+      const cantidadInput = row.querySelector('.cantidad-input');
+      const cantidad = parseInt(cantidadInput.value);
+      const precio = parseFloat(cantidadInput.dataset.precio);
+      
+      if (cantidad > 0) {
+        const subtotal = cantidad * precio;
+        row.querySelector('.subtotal').textContent = `S/ ${subtotal.toFixed(2)}`;
+        total += subtotal;
+        
+        productos.push({
+          id_producto: row.dataset.id,
+          cantidad: cantidad,
+          precio: precio
+        });
+      } else {
+        row.querySelector('.subtotal').textContent = 'S/ 0.00';
+      }
+    });
+    
+    document.getElementById('totalDevolucion').textContent = `S/ ${total.toFixed(2)}`;
+    document.getElementById('productosInput').value = JSON.stringify(productos);
+  }
+  
+  // Listen to quantity changes
+  document.querySelectorAll('.cantidad-input').forEach(input => {
+    input.addEventListener('change', calculateTotals);
+    input.addEventListener('input', calculateTotals);
+  });
+  
+  // Initial calculation
+  calculateTotals();
+  // Show/hide operation number field based on payment method
+document.getElementById('mediodepago').addEventListener('change', function() {
+  const noperacionGroup = document.getElementById('noperacionGroup');
+  // Show for electronic payment methods (2: Yape, 3: Plin, 4: Transferencia)
+  noperacionGroup.style.display = (this.value === '2' || this.value === '3' || this.value === '4') ? 'block' : 'none';
+  
+  // Make field required for electronic payments
+  document.getElementById('noperacion').required = (this.value === '2' || this.value === '3' || this.value === '4');
+});
+</script>
+<%- include('../partials/footer') %>

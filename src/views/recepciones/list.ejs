@@ -1,0 +1,95 @@
+<%- include('../partials/header') %>
+<h1>Lista de Recepciones</h1>
+
+<form action="/recepciones" method="GET" class="search-form">
+  <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar...">
+  <button type="submit">Buscar</button>
+</form>
+
+<a href="/recepciones/nuevo" class="btn">Nueva Recepción</a>
+<a href="/dashboard" class="btn">Volver a Dashboard</a>
+
+<!-- <form id="bulk-delete-form" action="/recepciones/bulk-delete" method="POST" class="bulk-actions" onsubmit="return validateBulkDelete()"> -->
+  <div class="action-buttons">
+    <!-- <button type="submit" class="btn-bulk-delete">Eliminar Seleccionados</button> -->
+    <a href="/recepciones/exportar" class="btn-export">
+      <i class="fas fa-file-excel"></i> Exportar a Excel
+    </a>
+  </div>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <!-- <th><input type="checkbox" id="select-all"></th> -->
+      <th>ID</th>
+      <th>Fecha</th>
+      <!-- <th>Compra Relacionada</th> -->
+      <th>Producto</th>
+      <th>Cantidad</th>
+      <th>Proveedor</th>
+      <th>Empleado</th>
+      <th>Observación</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% recepciones.forEach(recepcion => { %>
+      <tr>
+        <!-- <td><input type="checkbox" name="recepcionIds" value="<%= recepcion.id_recepcion %>" form="bulk-delete-form"></td> -->
+        <td><%= recepcion.id_recepcion %></td>
+        <td><%= dateFormatter.format(recepcion.fecha) %></td>
+        <!-- <td>
+          <% if (recepcion.id_compra) { %>
+            <a href="/compras/<%= recepcion.id_compra %>">Compra #<%= recepcion.id_compra %></a>
+          <% } else { %>
+            N/A
+          <% } %>
+        </td> -->
+        <td><%= recepcion.producto_nombre %></td>
+        <td><%= recepcion.cantidad %></td>
+        <td><%= recepcion.proveedor_nombre %></td>
+        <td><%= recepcion.empleado_nombre %></td>
+        <td><%= recepcion.observacion || '-' %></td>
+        <td class="actions">
+          <a href="/recepciones/editar/<%= recepcion.id_recepcion %>" class="btn-edit">Editar</a>
+          <form action="/recepciones/eliminar/<%= recepcion.id_recepcion %>" method="POST" style="display:inline;">
+            <button type="submit" class="btn-delete" onclick="return confirm('¿Está seguro que desea eliminar esta recepción?')">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<div class="pagination">
+  <% if (currentPage > 1) { %>
+    <a href="/recepciones?page=<%= currentPage - 1 %>&q=<%= searchQuery %>" class="page-link">Anterior</a>
+  <% } %>
+  <span>Página <%= currentPage %> de <%= totalPages %></span>
+  <% if (currentPage < totalPages) { %>
+    <a href="/recepciones?page=<%= currentPage + 1 %>&q=<%= searchQuery %>" class="page-link">Siguiente</a>
+  <% } %>
+</div>
+<!-- 
+<script>
+  function validateBulkDelete() {
+    const checkboxes = document.querySelectorAll('input[name="recepcionIds"]:checked');
+    if (checkboxes.length === 0) {
+      alert('Por favor seleccione al menos una recepción para eliminar');
+      return false;
+    }
+    return confirm('¿Está seguro que desea eliminar las recepciones seleccionadas?');
+  }
+
+  document.getElementById('select-all').addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('input[name="recepcionIds"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = e.target.checked;
+    });
+  });
+</script> -->
+
+
+
+<%- include('../partials/footer') %>

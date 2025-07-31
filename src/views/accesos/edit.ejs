@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+<% if (!acceso) { %>
+  <div class="alert alert-danger">Acceso no encontrado</div>
+  <%- include('../partials/footer') %>
+  <% return; %>
+<% } %>
+
+<h1>Editar Acceso</h1>
+
+<form action="/accesos/editar/<%= acceso.dni %>" method="POST">
+  <div class="form-group">
+    <label>Empleado:
+      <input type="text" value="<%= acceso.empleado %> (<%= acceso.dni %>)" readonly>
+    </label>
+  </div>
+  
+  <div class="form-group">
+    <label>Nueva Contraseña (dejar en blanco para no cambiar):
+      <input type="password" name="password">
+    </label>
+  </div>
+  
+  <div class="form-group">
+    <label>Tipo de Acceso:
+      <select name="tipo" required>
+        <option value="2" <%= acceso.tipo === '2' ? 'selected' : '' %>>Ventas</option>
+        <option value="1" <%= acceso.tipo === '1' ? 'selected' : '' %>>Administrador</option>
+        <option value="0" <%= acceso.tipo === '0' ? 'selected' : '' %>>Total</option>
+      </select>
+    </label>
+  </div>
+  
+  <button type="submit" class="btn">Guardar Cambios</button>
+</form>
+
+<%- include('../partials/footer') %>

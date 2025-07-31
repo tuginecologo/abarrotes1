@@ -1,0 +1,81 @@
+<%- include('../partials/header') %>
+<h1>Lista de Proveedores</h1>
+
+<form action="/proveedores" method="GET" class="search-form">
+  <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar...">
+  <button type="submit">Buscar</button>
+</form>
+
+<a href="/proveedores/nuevo" class="btn">Nuevo Proveedor</a>
+<a href="/dashboard" class="btn">Volver a Dashboard</a>
+
+<!-- <form id="bulk-delete-form" action="/proveedores/bulk-delete" method="POST" class="bulk-actions" onsubmit="return validateBulkDelete()"> -->
+  <div class="action-buttons">
+    <!-- <button type="submit" class="btn-bulk-delete">Eliminar Seleccionados</button> -->
+    <a href="/proveedores/exportar" class="btn-export">
+      <i class="fas fa-file-excel"></i> Exportar a Excel
+    </a>
+  </div>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <!-- <th><input type="checkbox" id="select-all"></th> -->
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>RUC</th>
+      <th>Teléfono</th>
+      <th>Email</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% proveedores.forEach(proveedor => { %>
+      <tr>
+        <!-- <td><input type="checkbox" name="proveedorIds" value="<%= proveedor.id_proveedor %>" form="bulk-delete-form"></td> -->
+        <td><%= proveedor.id_proveedor %></td>
+        <td><%= proveedor.nombre %></td>
+        <td><%= proveedor.ruc %></td>
+        <td><%= proveedor.telefono %></td>
+        <td><%= proveedor.email %></td>
+        <td class="actions">
+          <a href="/proveedores/editar/<%= proveedor.id_proveedor %>" class="btn-edit">Editar</a>
+          <form action="/proveedores/eliminar/<%= proveedor.id_proveedor %>" method="POST" style="display:inline;">
+            <button type="submit" class="btn-delete" onclick="return confirm('¿Está seguro que desea eliminar este proveedor?')">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<div class="pagination">
+  <% if (currentPage > 1) { %>
+    <a href="/proveedores?page=<%= currentPage - 1 %>&q=<%= searchQuery %>" class="page-link">Anterior</a>
+  <% } %>
+  <span>Página <%= currentPage %> de <%= totalPages %></span>
+  <% if (currentPage < totalPages) { %>
+    <a href="/proveedores?page=<%= currentPage + 1 %>&q=<%= searchQuery %>" class="page-link">Siguiente</a>
+  <% } %>
+</div>
+
+<!-- <script>
+  function validateBulkDelete() {
+    const checkboxes = document.querySelectorAll('input[name="proveedorIds"]:checked');
+    if (checkboxes.length === 0) {
+      alert('Por favor seleccione al menos un proveedor para eliminar');
+      return false;
+    }
+    return confirm('¿Está seguro que desea eliminar los proveedores seleccionados?');
+  }
+
+  document.getElementById('select-all').addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('input[name="proveedorIds"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = e.target.checked;
+    });
+  });
+</script> -->
+
+<%- include('../partials/footer') %>

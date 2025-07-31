@@ -1,0 +1,61 @@
+<%- include('../partials/header') %>
+<h1>Ex-Empleados</h1>
+
+<form action="/empleados/ex-empleados" method="GET" class="search-form">
+  <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar...">
+  <button type="submit">Buscar</button>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>DNI</th>
+      <th>Nombres</th>
+      <th>Apellidos</th>
+      <th>Último Cargo</th>
+      <th>Fecha Salida</th>
+      <th>Motivo Salida</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% empleados.forEach(empleado => { %>
+      <tr>
+        <td><%= empleado.dni %></td>
+        <td><%= empleado.nombres %></td>
+        <td><%= empleado.apellidos %></td>
+        <td><%= empleado.cargo_nombre %></td>
+        <td><%= formatDate(empleado.fecha_salida) %></td>
+        <td><%= empleado.motivosalida %></td>
+        <td>
+          <form action="/empleados/recontratar/<%= empleado.dni %>" method="POST">
+            <div class="form-group">
+              <select name="id_cargo" required>
+                <% cargos.forEach(cargo => { %>
+                  <option value="<%= cargo.id_cargo %>"><%= cargo.nombre %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group">
+              <input type="date" name="fecini" required>
+            </div>
+            <button type="submit" class="btn">Recontratar</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<!-- Pagination -->
+<% if (totalPages > 1) { %>
+  <div class="pagination">
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <a href="?page=<%= i %>&q=<%= searchQuery %>" class="<%= i === currentPage ? 'active' : '' %>">
+        <%= i %>
+      </a>
+    <% } %>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>

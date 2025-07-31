@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+<% if (!cliente) { %>
+    <div class="error">Cliente no encontrado</div>
+    <%- include('../partials/footer') %>
+    <% return; %>
+<% } %>
+
+<h1>Editar Cliente</h1>
+
+<form action="/clientes/editar/<%= cliente.dni %>" method="POST">
+    <div class="form-group">
+      <label>DNI:
+        <input type="text" name="dni" value="<%= cliente.dni %>" readonly>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Nombres:
+        <input type="text" name="nombres" value="<%= cliente.nombres %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Apellidos:
+        <input type="text" name="apellidos" value="<%= cliente.apellidos %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Fecha de Nacimiento:
+        <input type="date" name="fecnac" value="<%= new Date(cliente.fecnac).toISOString().split('T')[0] %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Sexo:
+        <select name="sexo" required>
+          <option value="M" <%= cliente.sexo === 'M' ? 'selected' : '' %>>Masculino</option>
+          <option value="F" <%= cliente.sexo === 'F' ? 'selected' : '' %>>Femenino</option>
+        </select>
+      </label>
+    </div>
+    <button type="submit" class="btn">Guardar Cambios</button>
+</form>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+<% if (!cargo) { %>
+    <div class="error">Cargo no encontrado</div>
+    <%- include('../partials/footer') %>
+    <% return; %>
+<% } %>
+
+<h1>Editar Cargo</h1>
+
+<form action="/cargos/editar/<%= cargo.id_cargo %>" method="POST">
+    <div class="form-group">
+      <label>Nombre:
+        <input type="text" name="nombre" value="<%= cargo.nombre %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Descripción:
+        <input type="text" name="descripcion" value="<%= cargo.descripcion %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Sueldo:
+        <input type="number" name="sueldo" value="<%= cargo.sueldo %>" step="0.01" min="0" required>
+      </label>
+    </div>
+    <button type="submit" class="btn">Guardar Cambios</button>
+</form>
+<%- include('../partials/footer') %>

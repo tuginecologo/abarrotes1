@@ -1,0 +1,23 @@
+<%- include('../partials/header') %>
+<h1>Nuevo Cargo</h1>
+
+<form action="/cargos/nuevo" method="POST">
+    <div class="form-group">
+      <label>Nombre:
+        <input type="text" name="nombre" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Descripción:
+        <input type="text" name="descripcion" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Sueldo:
+        <input type="number" name="sueldo" step="0.01" min="0" required>
+      </label>
+    </div>
+    <button type="submit" class="btn">Registrar Cargo</button>
+  </form>
+
+<%- include('../partials/footer') %>

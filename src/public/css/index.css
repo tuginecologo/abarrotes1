@@ -1,0 +1,532 @@
+body {
+    background: #000000; /* Black background */
+    color: white;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.site-header {
+    background-color: greenyellow; 
+    color: black;
+    padding: 10px 20px;
+    border-bottom: 2px solid #00FF00;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Changed to align left */
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    height: 50px;
+    width: auto;
+}
+
+.site-footer {
+    background-color: greenyellow; 
+    color: black;
+    padding: 1px;
+    text-align: center;
+    border-top: 2px solid #00FF00;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 0px; /* Fixed height */
+    z-index: 100; /* Ensure it stays above content but below modal */
+}
+
+/* Dashboard Styles */
+.dashboard-container {
+  padding: 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.user-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.welcome-message {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.btn-logout {
+  background-color: #dc3545;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 4px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-logout:hover {
+  background-color: #c82333;
+  color: white;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.dashboard-card i {
+  font-size: 2rem;
+  color: #007bff;
+}
+
+main {
+    padding: 20px;
+    margin-bottom: 80px; /* Increased to account for footer height */
+    min-height: calc(100vh - 160px); /* Ensures content pushes footer down */
+}
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #111;
+    border: 1px solid #00FF00;
+    border-radius: 5px;
+}
+
+.form-group {
+    margin-bottom: 40px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #00FF00;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px;
+    background-color: #222;
+    border: 1px solid #00FF00;
+    color: white;
+    border-radius: 3px;
+}
+
+.login-button {
+    background-color: #00FF00;
+    color: black;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+}
+
+.login-button:hover {
+    background-color: #32CD32;
+}
+/* Error page styles */
+.error-container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #111;
+    border: 1px solid #ff3333;
+    border-radius: 5px;
+}
+
+.error-message {
+    color: #ff3333;
+    font-size: 1.2em;
+    margin: 20px 0;
+}
+
+.error-details {
+    background-color: #222;
+    padding: 15px;
+    border-radius: 3px;
+    overflow-x: auto;
+    color: #ccc;
+    font-family: monospace;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  th, td {
+    border: 1px solid #00FF00;
+    padding: 8px;
+    text-align: left;
+  }
+  .btn {
+    display: inline-block;
+    background: #00FF00;
+    color: #000;
+    padding: 10px 15px;
+    text-decoration: none;
+    margin-bottom: 20px;
+  }
+  /* Products Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    color: white;
+  }
+  
+  th, td {
+    border: 1px solid #00FF00;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 5px;
+  }
+  
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    background: #00FF00;
+    color: #000;
+    padding: 8px 12px;
+    text-decoration: none;
+    margin: 10px 0;
+    border-radius: 3px;
+  }
+  
+  .btn-edit {
+    background: #FFA500;
+    color: #000;
+  }
+  
+  .btn-delete {
+    background: #FF0000;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  /* Forms */
+  .search-form {
+    margin: 20px 0;
+  }
+  
+  .search-form input {
+    padding: 8px;
+    width: 300px;
+    background: #333;
+    color: white;
+    border: 1px solid #00FF00;
+  }
+  
+  /* Pagination */
+  .pagination {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .page-link {
+    color: #00FF00;
+    text-decoration: none;
+  }
+  /* Bulk Actions */
+.bulk-actions {
+    margin: 20px 0;
+  }
+  
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .btn-bulk-delete {
+    background: #ff4444;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .btn-export {
+    background: #4285F4;
+    color: white;
+    padding: 8px 12px;
+    text-decoration: none;
+    border-radius: 3px;
+  }
+  
+  /* Image Upload */
+  .image-upload {
+    margin: 20px 0;
+  }
+  
+  .product-image {
+    max-width: 200px;
+    max-height: 200px;
+    display: block;
+    margin-bottom: 10px;
+    border: 1px solid #00FF00;
+  }
+  
+  /* Checkboxes */
+  #select-all {
+    margin-right: 5px;
+  }
+  td:nth-child(6) { /* Date column */
+    white-space: nowrap;
+    font-size: 0.9em;
+  }
+  /* Actions cell styling */
+.actions {
+    white-space: nowrap;
+    display: flex;
+    gap: 5px;
+  }
+  .actions form {
+    display: inline-block;
+    margin-left: 5px;
+  }
+  
+  /* Delete form inline styling */
+  .delete-form {
+    display: inline;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Button styling */
+  .btn-edit{
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    background: #FFA500;
+    color: black;
+  }
+  
+/* Individual delete button */
+.btn-delete {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  /* Bulk delete button */
+  .btn-bulk-delete {
+    background: #ff8800;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+
+  .thumbnail {
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  
+  .thumbnail:hover {
+    transform: scale(1.05);
+  }
+  
+/* Modal Background */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    overflow: auto;
+    text-align: center;
+    z-index: 1000; /* Higher than footer */
+    
+}
+
+/* Modal Container - Updated for proper centering */
+.modal-container {
+    position: relative;
+    display: inline-block;
+    max-width: 90vw;
+    max-height: 80vh; /* Reduced to account for footer */
+    margin: 40px auto; /* Added top margin */
+    top: auto;
+    transform: none;
+    padding-bottom: 60px; /* Space for footer */
+}
+.modal-content-container {
+  position: relative;
+  width: 80%;
+  max-width: 800px;
+  margin: auto;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Modal Image */
+.modal-content {
+  display: block;
+  width: 100%;
+  height: auto;
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border: 2px solid #00FF00;
+    display: block;
+    margin: 0 auto;
+    cursor: zoom-in;
+}
+
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .close-modal:hover {
+    color: #ccc;
+  }
+
+/* Image Info */
+.image-info {
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 1.2em;
+}
+.badge {
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: white;
+}
+
+.badge-success { background-color: #28a745; }
+.badge-warning { background-color: #ffc107; }
+.badge-danger { background-color: #dc3545; }
+
+/* Add to your existing styles */
+table th:nth-child(4),
+table td:nth-child(4) {
+  width: 150px; /* Adjust width as needed */
+  min-width: 150px;
+}
+
+/* Access badges */
+.badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge-info {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+}
+
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    main {
+        margin-bottom: 70px;
+        min-height: calc(100vh - 140px);
+    }
+    
+    .modal-container {
+        max-height: 65vh;
+        padding-bottom: 50px;
+    }
+    
+    .modal-content {
+        max-height: 60vh;
+    }
+    
+    .site-footer {
+        height: 0px;
+    }
+}

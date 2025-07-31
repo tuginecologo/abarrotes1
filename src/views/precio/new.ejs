@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+<h1>Nuevo Precio</h1>
+
+<form action="/precio/nuevo" method="POST">
+  <div class="form-group">
+    <label>Producto:
+      <select name="id_producto" required>
+        <option value="">Seleccione un producto</option>
+        <% availableProducts.forEach(producto => { %>
+          <option value="<%= producto.id_producto %>"><%= producto.nombre %></option>
+        <% }) %>
+      </select>
+    </label>
+  </div>
+  
+  <div class="form-group">
+    <label>Precio (S/):
+      <input type="number" name="precio" min="0.01" step="0.01" required>
+    </label>
+  </div>
+  
+  <button type="submit" class="btn">Guardar</button>
+</form>
+
+<%- include('../partials/footer') %>

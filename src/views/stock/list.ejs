@@ -1,0 +1,85 @@
+<%- include('../partials/header') %>
+<h1>Inventario de Stock</h1>
+
+<meta http-equiv="refresh" content="30">
+
+<form action="/stock" method="GET" class="search-form">
+  <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar...">
+  <button type="submit">Buscar</button>
+</form>
+
+<a href="/stock/exportar" class="btn-export">
+  <i class="fas fa-file-excel"></i> Exportar a Excel
+</a>
+<a href="/dashboard" class="btn">Volver a Dashboard</a>
+
+<!-- Add refresh button -->
+<a href="/stock" class="btn-refresh">
+  <i class="fas fa-sync-alt"></i> Actualizar
+</a>
+
+
+<table>
+  <thead>
+    <tr>
+      <th>ID Producto</th>
+      <th>Producto</th>
+      <th>Descripción</th>
+      <th>Variante</th>
+      <th>Cantidad</th>
+      <th>Precio (S/)</th> <!-- New column -->
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% stock.forEach(item => { %>
+      <tr>
+        <td><%= item.id_producto %></td>
+        <td><%= item.producto_nombre %></td>
+        <td><%= item.descripcion %></td>
+        <td>
+            <% if (typeof item.variante !== 'undefined') { %>
+              <%= item.variante || '-' %>
+            <% } else { %>
+              <span style="color:red">No variante field!</span>
+            <% } %>
+          </td>
+        <td><%= item.cantidad %></td>
+        <td>
+          <% if (item.precio_publico) { %>
+            S/ <%= item.precio_publico.toFixed(2) %>
+          <% } else { %>
+            -
+          <% } %>
+        </td>
+        <td>
+          <% if (item.cantidad <= 0) { %>
+            <span class="badge badge-danger">Agotado</span>
+          <% } else if (item.cantidad <= 10) { %>
+            <span class="badge badge-warning">Bajo Stock</span>
+          <% } else { %>
+            <span class="badge badge-success">Disponible</span>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<div class="pagination">
+  <% if (currentPage > 1) { %>
+    <a href="/stock?page=<%= currentPage - 1 %>&q=<%= searchQuery %>" class="page-link">Anterior</a>
+  <% } %>
+  <span>Página <%= currentPage %> de <%= totalPages %></span>
+  <% if (currentPage < totalPages) { %>
+    <a href="/stock?page=<%= currentPage + 1 %>&q=<%= searchQuery %>" class="page-link">Siguiente</a>
+  <% } %>
+</div>
+<script>
+    // Add manual refresh capability
+    document.querySelector('.btn-refresh').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.reload(true); // Force reload from server
+    });
+  </script>
+<%- include('../partials/footer') %>

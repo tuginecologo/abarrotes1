@@ -1,0 +1,67 @@
+<%- include('../partials/header') %>
+<% if (!compra) { %>
+    <div class="error">Compra no encontrada</div>
+    <%- include('../partials/footer') %>
+    <% return; %>
+<% } %>
+
+<h1>Editar Compra</h1>
+
+<form action="/compras/editar/<%= compra.id_compra %>" method="POST">
+    <div class="form-group">
+      <label>Producto:
+        <select name="id_producto" required>
+          <% options.productos.forEach(producto => { %>
+            <option value="<%= producto.id_producto %>" <%= producto.id_producto == compra.id_producto ? 'selected' : '' %>>
+              <%= producto.nombre %>
+            </option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Proveedor:
+        <select name="id_proveedor" required>
+          <% options.proveedores.forEach(proveedor => { %>
+            <option value="<%= proveedor.id_proveedor %>" <%= proveedor.id_proveedor == compra.id_proveedor ? 'selected' : '' %>>
+              <%= proveedor.nombre %>
+            </option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Empleado:
+        <select name="dni" required>
+          <% options.empleados.forEach(empleado => { %>
+            <option value="<%= empleado.dni %>" <%= empleado.dni == compra.dni ? 'selected' : '' %>>
+              <%= empleado.nombre %>
+            </option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Cantidad:
+        <input type="number" name="cantidad" value="<%= compra.cantidad %>" min="1" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Precio Unitario (S/):
+        <input type="number" name="preciounitario" value="<%= compra.preciounitario %>" step="0.01" min="0" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Fecha:
+        <input type="date" name="fecha" value="<%= new Date(compra.fecha).toISOString().split('T')[0] %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Observación:
+        <textarea name="observacion"><%= compra.observacion || '' %></textarea>
+      </label>
+    </div>
+    <button type="submit" class="btn">Guardar Cambios</button>
+</form>
+
+<%- include('../partials/footer') %>

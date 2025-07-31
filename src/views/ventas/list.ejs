@@ -1,0 +1,69 @@
+<%- include('../partials/header') %>
+<% function getMetodoPago(codigo) { 
+  switch(codigo) {
+    case '1': return 'Efectivo';
+    case '2': return 'Yape';
+    case '3': return 'Plin';
+    case '4': return 'Transferencia';
+    default: return 'Desconocido';
+  }
+} %>
+<h1>Lista de Ventas</h1>
+<a href="/ventas/nueva" class="btn btn-primary">
+  <i class="fas fa-plus"></i> Nueva Venta
+</a>
+<a href="/ventas/exportar" class="btn-export">
+  <i class="fas fa-file-excel"></i> Exportar a Excel
+</a>
+<a href="/dashboard" class="btn">Volver a Dashboard</a>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Fecha</th>
+      <th>Vendedor</th>
+      <th>Cliente</th>
+      <!-- <th>Items</th> -->
+      <th>Original</th>
+      <th>Devoluciones</th>
+      <th>Neto</th>
+      <th>Método Pago</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% ventas.forEach(venta => { %>
+      <tr>
+        <td><%= venta.id_venta %></td>
+        <td><%= venta.fecha.toLocaleDateString() %></td>
+        <td><%= venta.vendedor %></td>
+        <td><%= venta.cliente %></td>
+        <!-- <td><%= venta.items_count || 0 %></td> -->
+        <td>S/ <%= venta.original_total.toFixed(2) %></td>
+        <td class="text-danger">S/ <%= (-venta.returns_amount).toFixed(2) %></td>
+        <td class="font-weight-bold">S/ <%= venta.net_total.toFixed(2) %></td>
+        <td><%= getMetodoPago(venta.mediodepago) %></td>
+        <td>
+          <a href="/ventas/<%= venta.id_venta %>" class="btn btn-sm btn-info">
+            <i class="fas fa-eye"></i> Ver
+          </a>
+          <a href="/ventas/<%= venta.id_venta %>/historial" class="btn btn-sm btn-secondary">
+            <i class="fas fa-history"></i> Historial
+          </a>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<div class="pagination">
+  <% if (currentPage > 1) { %>
+    <a href="/ventas?page=<%= currentPage - 1 %>" class="page-link">Anterior</a>
+  <% } %>
+  <span>Página <%= currentPage %> de <%= totalPages %></span>
+  <% if (currentPage < totalPages) { %>
+    <a href="/ventas?page=<%= currentPage + 1 %>" class="page-link">Siguiente</a>
+  <% } %>
+</div>
+<%- include('../partials/footer') %>

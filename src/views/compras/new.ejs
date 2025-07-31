@@ -1,0 +1,58 @@
+<%- include('../partials/header') %>
+<h1>Nueva Compra</h1>
+
+<form action="/compras/nuevo" method="POST">
+    <div class="form-group">
+      <label>Producto:
+        <select name="id_producto" required>
+          <option value="">Seleccione un producto</option>
+          <% options.productos.forEach(producto => { %>
+            <option value="<%= producto.id_producto %>"><%= producto.nombre %></option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Proveedor:
+        <select name="id_proveedor" required>
+          <option value="">Seleccione un proveedor</option>
+          <% options.proveedores.forEach(proveedor => { %>
+            <option value="<%= proveedor.id_proveedor %>"><%= proveedor.nombre %></option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Empleado:
+        <select name="dni" required>
+          <option value="">Seleccione un empleado</option>
+          <% options.empleados.forEach(empleado => { %>
+            <option value="<%= empleado.dni %>"><%= empleado.nombre %></option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Cantidad:
+        <input type="number" name="cantidad" min="1" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Precio Unitario (S/):
+        <input type="number" name="preciounitario" step="0.01" min="0" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Fecha:
+        <input type="date" name="fecha" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Observación:
+        <textarea name="observacion"></textarea>
+      </label>
+    </div>
+    <button type="submit" class="btn">Registrar Compra</button>
+</form>
+
+<%- include('../partials/footer') %>

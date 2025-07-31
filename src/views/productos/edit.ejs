@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+<h1>Editar Producto</h1>
+
+<form action="/productos/editar/<%= product.id_producto %>" method="POST">
+  <div class="form-group">
+    <label>Nombre: <input type="text" name="nombre" value="<%= product.nombre %>" required></label>
+  </div>
+  <div class="form-group">
+    <label>Marca: <input type="text" name="marca" value="<%= product.marca %>" required></label>
+  </div>
+  <div class="form-group">
+    <label>Variante: <input type="text" name="variante" value="<%= product.variante %>"></label>
+  </div>
+  <div class="form-group">
+    <label>Descripción: <textarea name="descripcion"><%= product.descripcion %></textarea></label>
+  </div>
+  
+  <button type="submit" class="btn">Guardar Cambios</button>
+  <a href="/productos" class="btn-cancel">Cancelar</a>
+</form>
+
+<%- include('../partials/footer') %>

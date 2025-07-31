@@ -1,0 +1,112 @@
+<%- include('../partials/header') %>
+<% if (!recepcion) { %>
+    <div class="error">Recepción no encontrada</div>
+    <%- include('../partials/footer') %>
+    <% return; %>
+<% } %>
+
+<h1>Editar Recepción</h1>
+
+<form action="/recepciones/editar/<%= recepcion.id_recepcion %>" method="POST">
+    <div class="form-group">
+        <label>Proveedor:
+            <select name="id_proveedor" id="proveedor-select" required 
+                    onchange="loadProductos(this.value)">
+              <option value="">Seleccione un proveedor</option>
+            <% options.proveedores.forEach(proveedor => { %>
+              <option value="<%= proveedor.id_proveedor %>" 
+                      <%= proveedor.id_proveedor == recepcion.id_proveedor ? 'selected' : '' %>>
+                <%= proveedor.nombre %>
+              </option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+        <label>Producto:
+          <select name="id_producto" id="producto-select" required>
+            <option value="">Cargando productos...</option>
+          </select>
+        </label>
+      </div>
+    <div class="form-group">
+      <label>Empleado:
+        <select name="dni" required>
+          <% options.empleados.forEach(empleado => { %>
+            <option value="<%= empleado.dni %>" <%= empleado.dni == recepcion.dni ? 'selected' : '' %>>
+              <%= empleado.nombre %>
+            </option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Cantidad:
+        <input type="number" name="cantidad" value="<%= recepcion.cantidad %>" min="1" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Fecha:
+        <input type="date" name="fecha" value="<%= new Date(recepcion.fecha).toISOString().split('T')[0] %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Observación:
+        <textarea name="observacion"><%= recepcion.observacion || '' %></textarea>
+      </label>
+    </div>
+    <button type="submit" class="btn">Guardar Cambios</button>
+</form>
+
+<script>
+    // Store the current product ID in a JavaScript variable
+    const currentProductId = '<%= recepcion.id_producto %>';
+    const currentProveedorId = '<%= recepcion.id_proveedor %>';
+
+    async function loadProductos(id_proveedor) {
+      const productoSelect = document.getElementById('producto-select');
+      
+      if (!id_proveedor) {
+        productoSelect.innerHTML = '<option value="">Primero seleccione un proveedor</option>';
+        productoSelect.disabled = true;
+        return;
+      }
+      
+      try {
+        productoSelect.disabled = true;
+        productoSelect.innerHTML = '<option value="">Cargando productos...</option>';
+        
+        const response = await fetch(`/recepciones/productos-por-proveedor/${id_proveedor}`);
+        const productos = await response.json();
+        
+        let options = '<option value="">Seleccione un producto</option>';
+        productos.forEach(producto => {
+          const selected = (id_proveedor == currentProveedorId && producto.id_producto == currentProductId) ? 'selected' : '';
+          options += `<option value="${producto.id_producto}" ${selected}>${producto.nombre}</option>`;
+        });
+        
+        productoSelect.innerHTML = options;
+        productoSelect.disabled = false;
+      } catch (error) {
+        console.error('Error loading products:', error);
+        productoSelect.innerHTML = '<option value="">Error cargando productos</option>';
+      }
+    }
+  
+    // Load products when page loads if supplier is already selected
+// In edit.ejs
+document.addEventListener('DOMContentLoaded', () => {
+  const proveedorSelect = document.getElementById('proveedor-select');
+  if (currentProveedorId) {
+    loadProductos(currentProveedorId).then(() => {
+      // After products load, select the current product
+      const productoSelect = document.getElementById('producto-select');
+      if (currentProductId) {
+        productoSelect.value = currentProductId;
+      }
+    });
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>

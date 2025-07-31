@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+<h1>Nuevo Cliente</h1>
+
+<form action="/clientes/nuevo" method="POST">
+    <div class="form-group">
+      <label>DNI:
+        <input type="text" name="dni" pattern="[0-9]{8}" title="8 dígitos numéricos" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Nombres:
+        <input type="text" name="nombres" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Apellidos:
+        <input type="text" name="apellidos" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Fecha de Nacimiento:
+        <input type="date" name="fecnac" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Sexo:
+        <select name="sexo" required>
+          <option value="M">Masculino</option>
+          <option value="F">Femenino</option>
+        </select>
+      </label>
+    </div>
+    <button type="submit" class="btn">Registrar Cliente</button>
+</form>
+
+<%- include('../partials/footer') %>

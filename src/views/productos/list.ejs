@@ -1,0 +1,94 @@
+<%- include('../partials/header') %>
+<h1>Lista de Productos</h1>
+
+<!-- Search Form -->
+<form action="/productos" method="GET" class="search-form">
+  <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar...">
+  <button type="submit">Buscar</button>
+</form>
+
+<!-- New Product Button -->
+<a href="/productos/nuevo" class="btn">Nuevo Producto</a>
+<a href="/dashboard" class="btn">Volver a Dashboard</a>
+
+<!-- <form action="/productos/bulk-delete" method="POST" id="bulkDeleteForm"> -->
+  <div class="action-buttons">
+    <!-- <button type="submit" class="btn-bulk-delete" onclick="return confirm('¿Está seguro que desea eliminar los productos seleccionados?')"> -->
+      <!-- Eliminar Seleccionados -->
+    <!-- </button> -->
+    <a href="/productos/exportar" class="btn-export">
+      <i class="fas fa-file-excel"></i> Exportar a Excel
+    </a>
+  </div>
+  
+  <table>
+    <thead>
+      <tr>
+        <!-- <th><input type="checkbox" id="select-all"></th> -->
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Marca</th>
+        <th>Variante</th>
+        <th>Descripción</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% products.forEach(product => { %>
+        <tr>
+          <!-- <td><input type="checkbox" name="productIds" value="<%= product.id_producto %>"></td> -->
+          <td><%= product.id_producto %></td>
+          <td><%= product.nombre %></td>
+          <td><%= product.marca %></td>
+          <td><%= product.variante %></td>
+          <td><%= product.descripcion %></td>
+          <td><%= new Date(product.fecha).toLocaleDateString('es-PE') %></td>
+          <td class="actions">
+            <a href="/productos/editar/<%= product.id_producto %>" class="btn-edit">Editar</a>
+            <form action="/productos/eliminar/<%= product.id_producto %>" 
+                  method="POST" 
+                  onsubmit="return confirm('¿Eliminar este producto?')"
+                  style="display:inline;">
+              <button type="submit" class="btn-delete">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</form>
+
+<!-- Pagination -->
+<div class="pagination">
+  <% if (currentPage > 1) { %>
+    <a href="/productos?page=<%= currentPage - 1 %>&q=<%= searchQuery %>" class="page-link">Anterior</a>
+  <% } %>
+  
+  <span>Página <%= currentPage %> de <%= totalPages %></span>
+  
+  <% if (currentPage < totalPages) { %>
+    <a href="/productos?page=<%= currentPage + 1 %>&q=<%= searchQuery %>" class="page-link">Siguiente</a>
+  <% } %>
+</div>
+
+<!-- <script>
+  // Select all checkbox functionality
+  document.getElementById('select-all')?.addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('input[name="productIds"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = e.target.checked;
+    });
+  });
+
+  // Form submission handler
+  document.getElementById('bulkDeleteForm')?.addEventListener('submit', function(e) {
+    const checkedBoxes = document.querySelectorAll('input[name="productIds"]:checked');
+    if (checkedBoxes.length === 0) {
+      e.preventDefault();
+      alert('Por favor seleccione al menos un producto para eliminar');
+    }
+  });
+</script> -->
+
+<%- include('../partials/footer') %>

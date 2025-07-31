@@ -1,0 +1,145 @@
+<%- include('../partials/header') %>
+<h1>Lista de Empleados</h1>
+
+<form action="/empleados" method="GET" class="search-form">
+  <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar...">
+  <button type="submit">Buscar</button>
+</form>
+
+<a href="/empleados/nuevo" class="btn">Nuevo Empleado</a>
+<form action="/empleados/bulk-delete" method="POST" id="bulkDeleteForm" enctype="application/x-www-form-urlencoded">
+    <div class="action-buttons">
+      <!-- <button type="submit" class="btn-bulk-delete">Eliminar Seleccionados</button> -->
+      <a href="/empleados/exportar" class="btn-export">
+        <i class="fas fa-file-excel"></i> Exportar a Excel
+                  <!-- In empleados/list.ejs -->
+      </a>
+      <a href="/empleados/ex-empleados" class="btn">Ver Ex-Empleados</a>
+      <a href="/dashboard" class="btn">Volver a Dashboard</a>
+    </div>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <!-- <th></th> -->
+      <th>DNI</th>
+      <th>Nombres</th>
+      <th>Apellidos</th>
+      <th>Fecha Nac.</th>
+      <th>Sexo</th>
+      <th>Cargo</th>
+      <th>Fecha Inicio</th>
+      <!-- <th>Imagen</th> -->
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% empleados.forEach(empleado => { %>
+      <tr>
+        <!-- <td><input type="checkbox" name="empleadoIds" value="<%= empleado.dni %>"></td> -->
+        <td><%= empleado.dni %></td>
+        <td><%= empleado.nombres %></td>
+        <td><%= empleado.apellidos %></td>
+        <td><%= formatDate(empleado.fecnac) %></td>
+        <td><%= empleado.sexo === 'M' ? 'Masculino' : 'Femenino' %></td>
+        <td><%= empleado.cargo_nombre %></td>
+        <td><%= formatDate(empleado.fecini) %></td>
+        <!-- <td>
+          <img src="/uploads/empleados/empleado_<%= empleado.dni %>.jpg" 
+               onerror="this.src='/images/no-image.png'; this.onerror=null" 
+               class="thumbnail"
+               onclick="expandImage(this.src, '<%= empleado.nombres %>')">
+        </td> -->
+        <td class="actions">
+          <form>
+          <a href="/empleados/editar/<%= empleado.dni %>" class="btn-edit">Editar</a>
+          <a href="/empleados/terminar/<%= empleado.dni %>" class="btn-delete">Dar de Baja</a>
+
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<!-- Modal for full image -->
+<!-- <div id="imageModal" class="modal">
+    <span class="close-modal">&times;</span>
+    <div class="modal-container">
+      <img class="modal-content" id="expandedImage">
+      <div class="image-info">
+        Empleado: <span id="imageEmpleadoName"></span>
+      </div>
+    </div>
+  </div> -->
+  
+  <!-- <script>
+  // Image modal functionality
+  // const modal = document.getElementById('imageModal');
+  // if (modal) {
+  //   const modalImg = document.getElementById('expandedImage');
+  //   const empleadoNameSpan = document.getElementById('imageEmpleadoName');
+
+  //   // Open modal with image
+  //   window.expandImage = function(imgSrc, empleadoName) {
+  //     modalImg.src = imgSrc;
+  //     empleadoNameSpan.textContent = empleadoName;
+  //     modal.style.display = "block";
+  //   };
+
+  //   // Close handlers
+  //   document.querySelector('.close-modal')?.addEventListener('click', () => {
+  //     modal.style.display = "none";
+  //   });
+
+  //   window.addEventListener('click', (e) => {
+  //     if (e.target === modal) modal.style.display = "none";
+  //   });
+
+  //   document.addEventListener('keydown', (e) => {
+  //     if (e.key === 'Escape') modal.style.display = "none";
+  //   });
+  // }
+  // Select all functionality
+  document.getElementById('select-all')?.addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('input[name="empleadoIds"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = e.target.checked;
+    });
+  });
+
+  // Form submission handler
+  document.getElementById('bulkDeleteForm')?.addEventListener('submit', function(e) {
+    const checked = document.querySelectorAll('input[name="empleadoIds"]:checked');
+    if (checked.length === 0) {
+      e.preventDefault();
+      alert('Por favor seleccione al menos un empleado');
+      return;
+    }
+    
+    // Convert to array of values
+    const empleadoIds = Array.from(checked).map(cb => cb.value);
+    
+    // Create hidden input with JSON data
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = 'empleadoIdsJson';
+    input.value = JSON.stringify(empleadoIds);
+    this.appendChild(input);
+  });
+  
+  document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('img.thumbnail').forEach(img => {
+    console.log('Attempting to load image from:', img.src);
+    img.onerror = function() {
+      console.error('Failed to load image:', this.src);
+      this.style.display = 'none';
+      if (this.nextElementSibling) {
+        this.nextElementSibling.style.display = 'inline';
+      }
+    };
+  });
+});
+</script> -->
+<%- include('../partials/footer') %>

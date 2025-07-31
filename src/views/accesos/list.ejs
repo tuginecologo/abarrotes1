@@ -1,0 +1,86 @@
+<%- include('../partials/header') %>
+<h1>Lista de Accesos</h1>
+
+<form action="/accesos" method="GET" class="search-form">
+  <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar...">
+  <button type="submit">Buscar</button>
+</form>
+
+<a href="/accesos/nuevo" class="btn">Nuevo Acceso</a>
+<a href="/accesos/exportar" class="btn-export">
+  <!-- <i class="fas fa-file-excel"></i> Exportar a Excel -->
+</a>
+<a href="/dashboard" class="btn">Volver a Dashboard</a>
+
+<!-- <form id="bulk-delete-form" action="/accesos/bulk-delete" method="POST" class="bulk-actions"> -->
+  <!-- <button type="submit" class="btn-bulk-delete">Eliminar Seleccionados</button> -->
+<!-- </form> -->
+
+<table>
+  <thead>
+    <tr>
+      <!-- <th><input type="checkbox" id="select-all"></th> -->
+      <th>DNI</th>
+      <th>Empleado</th>
+      <th>Tipo de Acceso</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% accesos.forEach(acceso => { %>
+      <tr>
+        <!-- <td><input type="checkbox" name="dniList" value="<%= acceso.dni %>" form="bulk-delete-form"></td> -->
+        <td><%= acceso.dni %></td>
+        <td><%= acceso.empleado %></td>
+        <td>
+          <span class="badge badge-<%= 
+            acceso.tipo === '0' ? 'success' : 
+            acceso.tipo === '1' ? 'warning' : 'info' 
+          %>">
+            <%= 
+              acceso.tipo === '0' ? 'Total' : 
+              acceso.tipo === '1' ? 'Administrador' : 'Ventas' 
+            %>
+          </span>
+        </td>
+        <td class="actions">
+          <a href="/accesos/editar/<%= acceso.dni %>" class="btn-edit">Editar</a>
+          <form action="/accesos/eliminar/<%= acceso.dni %>" method="POST" style="display:inline;">
+            <button type="submit" class="btn-delete" onclick="return confirm('¿Está seguro?')">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+
+<div class="pagination">
+  <% if (currentPage > 1) { %>
+    <a href="/accesos?page=<%= currentPage - 1 %>&q=<%= searchQuery %>" class="page-link">Anterior</a>
+  <% } %>
+  <span>Página <%= currentPage %> de <%= totalPages %></span>
+  <% if (currentPage < totalPages) { %>
+    <a href="/accesos?page=<%= currentPage + 1 %>&q=<%= searchQuery %>" class="page-link">Siguiente</a>
+  <% } %>
+</div>
+
+<script>
+  // document.getElementById('select-all').addEventListener('change', function(e) {
+  //   const checkboxes = document.querySelectorAll('input[name="dniList"]');
+  //   checkboxes.forEach(checkbox => {
+  //     checkbox.checked = e.target.checked;
+  //   });
+  // });
+
+  // document.getElementById('bulk-delete-form').addEventListener('submit', function(e) {
+  //   const checkboxes = document.querySelectorAll('input[name="dniList"]:checked');
+  //   if (checkboxes.length === 0) {
+  //     e.preventDefault();
+  //     alert('Seleccione al menos un acceso');
+  //   } else if (!confirm('¿Está seguro que desea eliminar los accesos seleccionados?')) {
+  //     e.preventDefault();
+  //   }
+  // });
+</script>
+
+<%- include('../partials/footer') %>

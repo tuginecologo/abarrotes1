@@ -1,0 +1,28 @@
+<%- include('../partials/header') %>
+<h1>Nuevo Proveedor</h1>
+
+<form action="/proveedores/nuevo" method="POST">
+    <div class="form-group">
+      <label>Nombre:
+        <input type="text" name="nombre" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>RUC:
+        <input type="text" name="ruc" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Teléfono:
+        <input type="text" name="telefono" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Email:
+        <input type="email" name="email" required>
+      </label>
+    </div>
+    <button type="submit" class="btn">Registrar Proveedor</button>
+</form>
+
+<%- include('../partials/footer') %>

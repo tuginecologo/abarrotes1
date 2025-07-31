@@ -1,0 +1,242 @@
+<%- include('../partials/header') %>
+
+<h1>Nueva Venta</h1>
+
+<form id="ventaForm" action="/ventas/nueva" method="POST">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="dnicomp">Cliente</label>
+        <select class="form-control" id="dnicomp" name="dnicomp" required>
+            <option value="">Seleccionar cliente</option>
+            <% options.clientes.forEach(cliente => { %>
+              <option value="<%= cliente.dni %>"><%= cliente.nombre %></option>
+            <% }) %>
+          </select>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="dnivend">Vendedor</label>
+        <select class="form-control" id="dnivend" name="dnivend" required>
+            <option value="">Seleccionar vendedor</option>
+            <% options.empleados.forEach(empleado => { %>
+              <option value="<%= empleado.dni %>" <%= venta.dnivend === empleado.dni ? 'selected' : '' %>>
+                <%= empleado.nombre %>
+              </option>
+            <% }) %>
+          </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="fecha">Fecha</label>
+        <input type="date" class="form-control" id="fecha" name="fecha" 
+               value="<%= new Date().toISOString().split('T')[0] %>" required>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="mediodepago">Método de Pago</label>
+        <select class="form-control" id="mediodepago" name="mediodepago" required>
+          <option value="">Seleccionar método</option>
+          <option value="1">Efectivo</option>
+          <option value="2">Yape</option>
+          <option value="3">Plin</option>
+          <option value="4">Transferencia</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group" id="noperacionGroup" style="display: none;">
+    <label for="noperacion">Número de Operación</label>
+    <input type="text" class="form-control" id="noperacion" name="noperacion">
+  </div>
+
+  <h3>Productos</h3>
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <select class="form-control" id="productoSelect">
+        <option value="">Seleccionar producto</option>
+        <% options.productos.forEach(producto => { %>
+          <% if (producto.cantidad > 0) { %>
+            <option value="<%= producto.id_producto %>" 
+                    data-precio="<%= producto.precio %>"
+                    data-stock="<%= producto.cantidad %>">
+              <%= producto.nombre %> - <%= producto.variante || 'Sin variante' %> 
+              (S/ <%= Number(producto.precio).toFixed(2) %>, Stock: <%= producto.cantidad %>)
+            </option>
+          <% } %>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control" id="productoCantidad" min="1" value="1" placeholder="Cantidad">
+    </div>
+    <div class="col-md-4">
+      <button type="button" class="btn btn-primary" id="agregarProducto">
+        <i class="fas fa-plus"></i> Agregar
+      </button>
+    </div>
+  </div>
+
+  <button type="button" id="refreshStock" class="btn btn-info">
+    <i class="fas fa-sync-alt"></i> Actualizar Stock
+  </button>
+  
+
+
+  <table class="table" id="productosTable">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Precio Unitario</th>
+        <th>Cantidad</th>
+        <th>Subtotal</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Productos se agregarán aquí dinámicamente -->
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="3">Total</th>
+        <th id="totalVenta">S/ 0.00</th>
+        <th></th>
+      </tr>
+    </tfoot>
+  </table>
+
+  <input type="hidden" name="productos" id="productosInput">
+
+  <button type="submit" class="btn btn-success">
+    <i class="fas fa-save"></i> Registrar Venta
+  </button>
+</form>
+
+<script>
+  // Mostrar campo de número de operación solo para métodos electrónicos
+  document.getElementById('mediodepago').addEventListener('change', function() {
+    const noperacionGroup = document.getElementById('noperacionGroup');
+    noperacionGroup.style.display = (this.value === '2' || this.value === '3') ? 'block' : 'none';
+  });
+
+  // Manejar agregar productos
+  document.getElementById('agregarProducto').addEventListener('click', function() {
+    const productoSelect = document.getElementById('productoSelect');
+    const cantidadInput = document.getElementById('productoCantidad');
+    
+    if (!productoSelect.value) {
+      alert('Seleccione un producto');
+      return;
+    }
+
+    const selectedOption = productoSelect.options[productoSelect.selectedIndex];
+    const idProducto = productoSelect.value;
+    const nombreProducto = selectedOption.text.split(' - ')[0];
+    const precio = parseFloat(selectedOption.dataset.precio);
+    const cantidad = parseInt(cantidadInput.value);
+    const stock = parseInt(selectedOption.dataset.stock);
+
+    if (cantidad <= 0) {
+      alert('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    if (cantidad > stock) {
+      alert(`No hay suficiente stock. Disponible: ${stock}`);
+      return;
+    }
+
+    // Verificar si el producto ya está en la tabla
+    const existingRow = document.querySelector(`#productosTable tr[data-id="${idProducto}"]`);
+    if (existingRow) {
+      const existingCantidad = parseInt(existingRow.querySelector('.cantidad').textContent);
+      const newCantidad = existingCantidad + cantidad;
+      
+      if (newCantidad > stock) {
+        alert(`No hay suficiente stock para esta cantidad adicional. Disponible: ${stock - existingCantidad}`);
+        return;
+      }
+      
+      existingRow.querySelector('.cantidad').textContent = newCantidad;
+      existingRow.querySelector('.subtotal').textContent = `S/ ${(precio * newCantidad).toFixed(2)}`;
+    } else {
+      // Agregar nueva fila
+      const tbody = document.querySelector('#productosTable tbody');
+      const row = document.createElement('tr');
+      row.dataset.id = idProducto;
+      
+      row.innerHTML = `
+        <td>${nombreProducto}</td>
+        <td class="precio">S/ ${precio.toFixed(2)}</td>
+        <td class="cantidad">${cantidad}</td>
+        <td class="subtotal">S/ ${(precio * cantidad).toFixed(2)}</td>
+        <td>
+          <button type="button" class="btn btn-sm btn-danger eliminar-producto">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      `;
+      
+      tbody.appendChild(row);
+    }
+
+    // Actualizar total
+    actualizarTotal();
+
+    // Limpiar inputs
+    cantidadInput.value = 1;
+  });
+
+  // Manejar eliminar productos
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('eliminar-producto') || e.target.closest('.eliminar-producto')) {
+      e.target.closest('tr').remove();
+      actualizarTotal();
+    }
+  });
+
+  // Actualizar total
+  function actualizarTotal() {
+    const subtotals = Array.from(document.querySelectorAll('.subtotal')).map(el => {
+      return parseFloat(el.textContent.replace('S/ ', ''));
+    });
+    
+    const total = subtotals.reduce((sum, current) => sum + current, 0);
+    document.getElementById('totalVenta').textContent = `S/ ${total.toFixed(2)}`;
+  }
+
+  // Preparar datos antes de enviar el formulario
+// In your view's JavaScript
+// Add this script at the bottom of your form
+document.getElementById('ventaForm').addEventListener('submit', function(e) {
+  const productos = Array.from(document.querySelectorAll('#productosTable tbody tr')).map(row => {
+    return {
+      id_producto: row.dataset.id,
+      nombre: row.querySelector('td:first-child').textContent,
+      cantidad: parseInt(row.querySelector('.cantidad').textContent),
+      precio: parseFloat(row.querySelector('.precio').textContent.replace('S/ ', ''))
+    };
+  });
+
+  if (productos.length === 0) {
+    e.preventDefault();
+    alert('Debe agregar al menos un producto');
+    return;
+  }
+
+  document.getElementById('productosInput').value = JSON.stringify(productos);
+});
+
+  document.getElementById('refreshStock').addEventListener('click', async function() {
+    const response = await fetch('/ventas/nueva');
+    window.location.reload();
+  });
+</script>
+<%- include('../partials/footer') %>

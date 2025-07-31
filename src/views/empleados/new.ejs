@@ -1,0 +1,50 @@
+<%- include('../partials/header') %>
+<h1>Nuevo Empleado</h1>
+
+<form action="/empleados/nuevo" method="POST" enctype="multipart/form-data">
+  <button type="submit" class="btn">Registrar Empleado</button>
+  <!-- DNI Field -->
+  <div class="form-group">
+    <label for="dni">DNI *</label>
+    <input type="text" id="dni" name="dni" class="form-control" 
+           pattern="\d{8}" title="Debe contener exactamente 8 dígitos" required>
+    <div class="invalid-feedback">Por favor ingrese un DNI válido (8 dígitos)</div>
+  </div>
+  <div class="form-group">
+    <label>Nombres: <input type="text" name="nombres" required></label>
+  </div>
+  <div class="form-group">
+    <label>Apellidos: <input type="text" name="apellidos" required></label>
+  </div>
+  <div class="form-group">
+    <label>Fecha Nacimiento: <input type="date" name="fecnac" required></label>
+  </div>
+  <div class="form-group">
+    <label>Sexo:
+      <select name="sexo" required>
+        <option value="M">Masculino</option>
+        <option value="F">Femenino</option>
+      </select>
+    </label>
+  </div>
+  <div class="form-group">
+    <label>Cargo:
+        <select name="id_cargo" required>
+            <% cargos.forEach(cargo => { %>
+                <option value="<%= cargo.id_cargo %>"><%= cargo.nombre %></option>
+            <% }) %>
+        </select>
+    </label>
+</div>
+  <div class="form-group">
+    <label>Fecha Inicio: <input type="date" name="fecini" required></label>
+  </div>
+  <!-- <div class="form-group">
+    <label>Imagen:
+      <input type="file" name="imagen" accept="image/*">
+    </label>
+  </div> -->
+  <button type="submit" class="btn">Registrar Empleado</button>
+</form>
+
+<%- include('../partials/footer') %>

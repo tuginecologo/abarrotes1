@@ -1,0 +1,37 @@
+<%- include('../partials/header') %>
+<h1>Nuevo Acceso</h1>
+
+<form action="/accesos/nuevo" method="POST">
+  <div class="form-group">
+    <label>Empleado:
+      <select name="dni" required>
+        <option value="">Seleccionar empleado</option>
+        <% empleados.forEach(empleado => { %>
+          <option value="<%= empleado.dni %>">
+            <%= empleado.nombres %> <%= empleado.apellidos %> (<%= empleado.dni %>)
+          </option>
+        <% }) %>
+      </select>
+    </label>
+  </div>
+  
+  <div class="form-group">
+    <label>Contraseña:
+      <input type="password" name="password" required>
+    </label>
+  </div>
+  
+  <div class="form-group">
+    <label>Tipo de Acceso:
+      <select name="tipo" required>
+        <option value="2">Ventas</option>
+        <option value="1">Administrador</option>
+        <option value="0">Total</option>
+      </select>
+    </label>
+  </div>
+  
+  <button type="submit" class="btn">Crear Acceso</button>
+</form>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,21 @@
+<%- include('../partials/header') %>
+<h1>Dar de Baja Empleado</h1>
+
+<form action="/empleados/terminar/<%= empleado.dni %>" method="POST">
+    <div class="form-group">
+        <label>Empleado: <%= empleado.nombres %> <%= empleado.apellidos %></label>
+    </div>
+    <div class="form-group">
+        <label>Fecha de Terminación:</label>
+        <input type="date" name="fecfin" required class="form-control" 
+               value="<%= new Date().toISOString().split('T')[0] %>">
+    </div>
+    <div class="form-group">
+        <label>Motivo de Salida:</label>
+        <textarea name="motivosalida" rows="4" required class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-danger">Confirmar Baja</button>
+    <a href="/empleados" class="btn btn-secondary">Cancelar</a>
+</form>
+
+<%- include('../partials/footer') %>

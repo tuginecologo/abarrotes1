@@ -1,0 +1,34 @@
+<%- include('../partials/header') %>
+<% if (!proveedor) { %>
+    <div class="error">Proveedor no encontrado</div>
+    <%- include('../partials/footer') %>
+    <% return; %>
+<% } %>
+
+<h1>Editar Proveedor</h1>
+
+<form action="/proveedores/editar/<%= proveedor.id_proveedor %>" method="POST">
+    <div class="form-group">
+      <label>Nombre:
+        <input type="text" name="nombre" value="<%= proveedor.nombre %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>RUC:
+        <input type="text" name="ruc" value="<%= proveedor.ruc %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Teléfono:
+        <input type="text" name="telefono" value="<%= proveedor.telefono %>" required>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Email:
+        <input type="email" name="email" value="<%= proveedor.email %>" required>
+      </label>
+    </div>
+    <button type="submit" class="btn">Guardar Cambios</button>
+</form>
+
+<%- include('../partials/footer') %>
