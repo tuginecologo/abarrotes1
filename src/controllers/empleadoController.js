@@ -88,6 +88,19 @@ module.exports = {
 
   updateEmpleado: async (req, res, next) => {
     try {
+        console.log('Request body received:', req.body); // Debug log
+        
+        if (!req.body) {
+            throw new Error('No data received in request body');
+        }
+
+        const requiredFields = ['nombres', 'apellidos', 'fecnac', 'sexo', 'id_cargo'];
+        for (const field of requiredFields) {
+            if (!req.body[field]) {
+                throw new Error(`Missing required field: ${field}`);
+            }
+        }
+
         const empleadoData = {
             dni: req.params.dni,
             nombres: req.body.nombres,
@@ -97,18 +110,16 @@ module.exports = {
             id_cargo: req.body.id_cargo
         };
 
-        await empleadoService.updateEmpleado(req.params.dni, empleadoData);
+        await empleadoService.updateEmpleado(empleadoData.dni, empleadoData);
 
-        // Handle image upload if present
-        if (req.file) {
-            await empleadoService.saveEmpleadoImage(req.params.dni, req.file);
-        }
-
+        req.flash('success', 'Empleado actualizado correctamente');
         res.redirect('/empleados');
     } catch (err) {
-        next(err);
+        console.error('Error updating employee:', err);
+        req.flash('error', err.message);
+        res.redirect(`/empleados/editar/${req.params.dni}`);
     }
-  },
+},
 
   // Show edit form
   showEditForm: async (req, res, next) => {

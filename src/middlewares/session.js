@@ -28,7 +28,7 @@ const sessionStore = new MySQLStore({
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
   clearExpired: true,
-  checkExpirationInterval: 900000, // 15 minutes
+  checkExpirationInterval: 9000000, // 15 minutes
   expiration: 86400000 // 24 hours
 });
 

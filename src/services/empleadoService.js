@@ -60,36 +60,30 @@ module.exports = {
 },
 
   // Keep all other methods exactly the same
-  updateEmpleado: async (dni, empleadoData) => {
-    // Verify employee exists first
-    const existing = await empleadoRepository.getEmpleadoById(dni);
-    if (!existing) {
-        throw new Error('Empleado no encontrado');
-    }
+// In empleadoService.js
+updateEmpleado: async (dni, empleadoData) => {
+  // Verify employee exists first
+  const existing = await empleadoRepository.getEmpleadoById(dni);
+  if (!existing) {
+      throw new Error('Empleado no encontrado');
+  }
 
-    // Validate required fields
-    const requiredFields = ['nombres', 'apellidos', 'fecnac', 'sexo'];
-    for (const field of requiredFields) {
-        if (!empleadoData[field]) {
-            throw new Error(`Campo requerido faltante: ${field}`);
-        }
-    }
+  // Validate required fields
+  const requiredFields = ['nombres', 'apellidos', 'fecnac', 'sexo'];
+  for (const field of requiredFields) {
+      if (!empleadoData[field]) {
+          throw new Error(`Campo requerido faltante: ${field}`);
+      }
+  }
 
-    // Update employee data
-    await empleadoRepository.updateEmpleado(
-        dni,
-        empleadoData.nombres,
-        empleadoData.apellidos,
-        empleadoData.fecnac,
-        empleadoData.sexo
-    );
+  // Update employee data
+  await empleadoRepository.updateEmpleado(dni, empleadoData);
 
-    // Update contract if cargo changed
-    if (empleadoData.id_cargo) {
-        await empleadoRepository.updateEmpleadoCargo(dni, empleadoData.id_cargo);
-    }
+  // Update contract if cargo changed
+  if (empleadoData.id_cargo && empleadoData.id_cargo !== existing.id_cargo) {
+      await empleadoRepository.updateEmpleadoCargo(dni, empleadoData.id_cargo);
+  }
 },
-
   terminateEmpleado: async (dni, motivosalida) => {
     const connection = await pool.getConnection();
     try {

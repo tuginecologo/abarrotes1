@@ -77,15 +77,20 @@ getEmpleadoById: async (dni) => {
 },
 
   // Update employee
-  updateEmpleado: async (dni, nombres, apellidos, fecnac, sexo) => {
+  updateEmpleado: async (dni, empleadoData) => {
     await pool.query(
         `UPDATE empleado 
          SET nombres = ?, apellidos = ?, fecnac = ?, sexo = ?
          WHERE dni = ?`,
-        [nombres, apellidos, fecnac, sexo, dni]
+        [
+            empleadoData.nombres, 
+            empleadoData.apellidos, 
+            empleadoData.fecnac, 
+            empleadoData.sexo, 
+            dni
+        ]
     );
 },
-
   // Delete employee
   deleteEmpleado: async (dni) => {
     await pool.query('DELETE FROM empleado WHERE dni = ?', [dni]);

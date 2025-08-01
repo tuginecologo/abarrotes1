@@ -9,20 +9,22 @@ const helmet = require('helmet');
 const compression = require('compression');
 
 // // Initialize basic middleware
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
       fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
-      imgSrc: ["'self'", "data:"]
+      imgSrc: ["'self'", "data:", "https:"], // Added https: for ngrok
+      connectSrc: ["'self'", "https://*.ngrok.io"] // Added for ngrok
     }
-  }
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" } // Needed for ngrok
 }));
 app.use(compression());
 
@@ -46,7 +48,7 @@ app.set('views', path.join(__dirname, 'views'));
 const publicPath = path.join(__dirname, 'public');
 console.log(`Static files served from: ${publicPath}`);
 
-app.use('/public', express.static(publicPath, {
+app.use(express.static(publicPath, {
   maxAge: '1y',
   etag: true,
   lastModified: true,
@@ -56,9 +58,19 @@ app.use('/public', express.static(publicPath, {
       res.set('Content-Type', 'application/javascript');
     } else if (ext === '.css') {
       res.set('Content-Type', 'text/css');
+    } else if (ext === '.png' || ext === '.jpg' || ext === '.jpeg') {
+      res.set('Content-Type', `image/${ext.substring(1)}`);
     }
   }
 }));
+
+app.get('/test-static', (req, res) => {
+  res.json({
+    css: `${res.locals.baseUrl}/css/index.css`,
+    logo: `${res.locals.baseUrl}/images/logo.png`,
+    js: `${res.locals.baseUrl}/js/recepciones.js`
+  });
+});
 
 // Debugging routes
 app.get('/debug/files', (req, res) => {
