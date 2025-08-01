@@ -19,8 +19,8 @@ router.route('/empleados/nuevo')
 
 // Employee edit flow
 router.route('/empleados/editar/:dni')
-  .get(checkAuth, checkRole(['0', '1']), asyncWrapper(empleadoController.showEditForm));
-  // .post(checkAuth, uploadEmployeeImage.single('imagen'), checkRole(['0', '1']), asyncWrapper(empleadoController.updateEmpleado));
+  .get(checkAuth, checkRole(['0', '1']), asyncWrapper(empleadoController.showEditForm))
+  .post(checkAuth, checkRole(['0', '1']), asyncWrapper(empleadoController.updateEmpleado));
 
 // Replace delete routes with:
 router.post('/empleados/terminar/:dni', checkAuth, checkRole(['0', '1']), asyncWrapper(empleadoController.terminateEmpleado));
