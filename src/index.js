@@ -1,4 +1,11 @@
 require('dotenv').config();
+console.log('Environment Variables:', {
+  NODE_ENV: process.env.NODE_ENV,
+  MYSQLHOST: process.env.MYSQLHOST ? '****' : 'MISSING',
+  MYSQLUSER: process.env.MYSQLUSER ? '****' : 'MISSING',
+  MYSQLDATABASE: process.env.MYSQLDATABASE,
+  PORT: process.env.PORT
+});
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -137,9 +144,19 @@ app.use(require('./middlewares/errorHandler'));
 
 // Start server
 const port = process.env.PORT || 4001;
-const server = app.listen(port, () => {
+const server = app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+
+    // Add database connection test
+    pool.getConnection()
+    .then(conn => {
+      console.log('Database connection successful');
+      conn.release();
+    })
+    .catch(err => {
+      console.error('Database connection failed:', err);
+    });
   
   // Verify static files configuration
   console.log('\nStatic files configuration:');
@@ -155,6 +172,33 @@ const server = app.listen(port, () => {
       console.log('\x1b[32m', `SUCCESS: recepciones.js found at ${recepcionesPath}`);
     }
   });
+});
+
+// Add these before your other routes
+app.get('/debug/env', (req, res) => {
+  res.json({
+    node_env: process.env.NODE_ENV,
+    mysql_connected: !!pool._freeConnections.length,
+    session_config: {
+      store: req.sessionStore ? 'connected' : 'disconnected',
+      secret: !!process.env.SESSION_SECRET
+    }
+  });
+});
+
+app.get('/debug/db', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT 1 + 1 AS solution');
+    res.json({ 
+      db_connection: 'success',
+      test_query: rows[0].solution === 2
+    });
+  } catch (err) {
+    res.status(500).json({
+      db_connection: 'failed',
+      error: err.message
+    });
+  }
 });
 
 // Handle server errors

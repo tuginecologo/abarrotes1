@@ -28,18 +28,37 @@ const sessionStore = new MySQLStore({
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
   clearExpired: true,
-  checkExpirationInterval: 9000000, // 15 minutes
-  expiration: 86400000 // 24 hours
+  checkExpirationInterval: 900000, // 15 minutes
+  expiration: 86400000, // 24 hours
+  createDatabaseTable: true,
+  schema: {
+    tableName: 'sessions',
+    columnNames: {
+      session_id: 'session_id',
+      expires: 'expires',
+      data: 'data'
+    }
+  }
 });
 
+// Verify session store connection
+sessionStore.on('error', (error) => {
+  console.error('Session store error:', error);
+});
+
+sessionStore.on('connect', () => {
+  console.log('Session store connected successfully');
+});
 module.exports = session({
   secret: process.env.SESSION_SECRET,
   store: sessionStore,
   resave: false,
   saveUninitialized: false,
+  proxy: true, // Important for Railway/Render
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 86400000 // 24 hours
+    maxAge: 86400000, // 24 hours
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
 });
