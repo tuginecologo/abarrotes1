@@ -149,14 +149,14 @@ const server = app.listen(port, '0.0.0.0', () => {
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 
     // Add database connection test
-    pool.getConnection()
-    .then(conn => {
-      console.log('Database connection successful');
-      conn.release();
-    })
-    .catch(err => {
-      console.error('Database connection failed:', err);
-    });
+    // pool.getConnection()
+    // .then(conn => {
+    //   console.log('Database connection successful');
+    //   conn.release();
+    // })
+    // .catch(err => {
+    //   console.error('Database connection failed:', err);
+    // });
   
   // Verify static files configuration
   console.log('\nStatic files configuration:');
