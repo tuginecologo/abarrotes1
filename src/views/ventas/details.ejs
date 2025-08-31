@@ -5,6 +5,7 @@
     case '2': return 'Yape';
     case '3': return 'Plin';
     case '4': return 'Transferencia';
+    case '5': return 'Pago Mixto';
     default: return 'Desconocido';
   }
 } %>
@@ -19,10 +20,31 @@
       </div>
       <div class="col-md-6">
         <p><strong>Cliente:</strong> <%= venta.cliente %></p>
-        <p><strong>Método de Pago:</strong> <%= venta.metodoPago %></p>
-        <% if (venta.noperacion) { %>
-          <p><strong>N° Operación:</strong> <%= venta.noperacion %></p>
-        <% } %>
+        <p><strong>Método de Pago:</strong> 
+          <% if (venta.mediodepago === '5') { %>
+            Pago Mixto
+            <% 
+              let mixedData = null;
+              try {
+                mixedData = venta.payment_details ? JSON.parse(venta.payment_details) : null;
+              } catch (e) {
+                console.error('Error parsing mixed payment data:', e);
+              }
+            %>
+            <% if (mixedData) { %>
+              <br>
+              <small>
+                - Efectivo: S/ <%= mixedData.efectivo.toFixed(2) %><br>
+                - <%= getMetodoPago(mixedData.metodo_electronico) %>: S/ <%= mixedData.electronico.toFixed(2) %>
+                <% if (venta.noperacion) { %>(Op: <%= venta.noperacion %>)<% } %>
+              </small>
+            <% } %>
+          <% } else { %>
+            <%= venta.metodoPago %>
+            <% if (venta.noperacion) { %> (Op: <%= venta.noperacion %>) <% } %>
+          <% } %>
+        </p>
+        <!-- REMOVE THIS DUPLICATE LINE: <p><strong>N° Operación:</strong> <%= venta.noperacion %></p> -->
       </div>
     </div>
   </div>
@@ -32,7 +54,11 @@
 <table class="table">
   <thead>
     <tr>
+      <th>ID</th>
       <th>Producto</th>
+      <th>Marca</th>
+      <th>Variante</th>
+      <th>Descripción</th>
       <th>Precio Unitario</th>
       <th>Cantidad</th>
       <th>Subtotal</th>
@@ -41,7 +67,11 @@
   <tbody>
     <% venta.detalles.forEach(detalle => { %>
       <tr>
+        <td><%= detalle.id_producto %></td>
         <td><%= detalle.producto_nombre %></td>
+        <td><%= detalle.marca || 'N/A' %></td>
+        <td><%= detalle.variante || 'N/A' %></td>
+        <td><%= detalle.descripcion || 'N/A' %></td>
         <td>S/ <%= detalle.precio.toFixed(2) %></td>
         <td><%= detalle.cantidad %></td>
         <td>S/ <%= (detalle.precio * detalle.cantidad).toFixed(2) %></td>
@@ -50,7 +80,7 @@
   </tbody>
   <tfoot>
     <tr>
-      <th colspan="3">Total</th>
+      <th colspan="7">Total</th>
       <th>S/ <%= venta.total.toFixed(2) %></th>
     </tr>
   </tfoot>

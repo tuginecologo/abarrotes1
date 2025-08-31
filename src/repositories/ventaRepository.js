@@ -59,9 +59,7 @@ getVentas: async (page = 1, limit = 10) => {
     const [empleados] = await pool.query('SELECT dni, CONCAT(nombres, " ", apellidos) as nombre FROM empleado ORDER BY nombre');
     return empleados;
   },
-
-  // Get products in stock
-// In ventaRepository.js
+// In ventaRepository.js - CORRECTED version
 getProductosEnStock: async () => {
   try {
     const [productos] = await pool.query(
@@ -69,6 +67,7 @@ getProductosEnStock: async () => {
          p.id_producto, 
          p.nombre, 
          p.variante, 
+         p.marca,  -- Just the column name
          COALESCE(pr.precio, 0) as precio,
          COALESCE(
            (SELECT SUM(cantidad) FROM stock WHERE id_producto = p.id_producto), 
@@ -94,16 +93,17 @@ getProductosEnStock: async () => {
   },
 
   // Create sale
-  createVenta: async (dnivend, dnicomp, fecha, mediodepago, noperacion) => {
-    console.log("Creating venta record:", { dnivend, dnicomp, fecha, mediodepago, noperacion });
+  createVenta: async (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details = null) => {
+    console.log("Creating venta record:", { dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details });
     const [result] = await pool.query(
-      `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion)
-       VALUES (?, ?, ?, ?, ?)`,
-      [dnivend, dnicomp, fecha, mediodepago, noperacion]
+      `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details]
     );
     console.log("Venta created with ID:", result.insertId);
     return result.insertId;
   },
+  
   
   createDetalleVenta: async (cantidad, id_producto, observacion, id_venta) => {
     console.log("Creating detalle_venta:", { cantidad, id_producto, observacion, id_venta });
@@ -146,7 +146,8 @@ getVentaDetails: async (id) => {
          WHERE vm.id_venta = v.id_venta
        ), 0)) as net_total,
        v.mediodepago,
-       v.noperacion
+       v.noperacion,
+       v.payment_details
        FROM venta v
        JOIN empleado e ON v.dnivend = e.dni
        JOIN cliente c ON v.dnicomp = c.dni
@@ -161,10 +162,15 @@ getVentaDetails: async (id) => {
 
     const ventaData = venta[0];
 
+    // UPDATE THIS QUERY to include marca, variante, descripcion
     const [detalles] = await pool.query(
       `SELECT 
          dv.*, 
+         p.id_producto,
          p.nombre as producto_nombre,
+         p.marca,
+         p.variante,
+         p.descripcion,
          dv.precio as precio
        FROM detalle_venta dv
        JOIN producto p ON dv.id_producto = p.id_producto
@@ -183,21 +189,23 @@ getVentaDetails: async (id) => {
   }
 },
   // Create venta_mod record
-createVentaMod: async (ventaModData) => {
-  const [result] = await pool.query(
-    `INSERT INTO venta_mod 
-     (id_venta, dnivend, fecha, mediodepago, noperacion)
-     VALUES (?, ?, ?, ?, ?)`,
-    [
-      ventaModData.id_venta,
-      ventaModData.dnivend,
-      ventaModData.fecha,
-      ventaModData.mediodepago,
-      ventaModData.noperacion
-    ]
-  );
-  return result.insertId;
-},
+  createVentaMod: async (ventaModData) => {
+    const [result] = await pool.query(
+      `INSERT INTO venta_mod 
+       (id_venta, dnivend, fecha, mediodepago, noperacion, payment_details, motivo)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        ventaModData.id_venta,
+        ventaModData.dnivend,
+        ventaModData.fecha,
+        ventaModData.mediodepago,
+        ventaModData.noperacion,
+        ventaModData.payment_details,
+        ventaModData.motivo
+      ]
+    );
+    return result.insertId;
+  },
 
 // Create detalle_venta_mod record
 createDetalleVentaMod: async (detalleData) => {
@@ -224,8 +232,7 @@ createMontoVentaMod: async (montoData) => {
   );
 },
 
-// Get sale modification history
-// In ventaRepository.js - getVentaHistory
+// In ventaRepository.js - update the getVentaHistory details query
 getVentaHistory: async (ventaId) => {
   const [modifications] = await pool.query(
     `SELECT 
@@ -246,7 +253,11 @@ getVentaHistory: async (ventaId) => {
     const [details] = await pool.query(
       `SELECT 
          dvm.*,
+         p.id_producto,
          p.nombre as producto_nombre,
+         p.marca,
+         p.variante,
+         p.descripcion,
          dvm.precio as precio
        FROM detalle_venta_mod dvm
        JOIN producto p ON dvm.id_producto = p.id_producto
@@ -293,7 +304,9 @@ function getMetodoPago(codigo) {
   switch(codigo) {
     case '1': return 'Efectivo';
     case '2': return 'Yape';
-    case '3': return 'Plin/Transferencia';
+    case '3': return 'Plin';
+    case '4': return 'Transferencia';
+    case '5': return 'PagoMixto'
     default: return 'Desconocido';
   }
 }

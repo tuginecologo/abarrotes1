@@ -24,25 +24,26 @@ module.exports = {
     return { rows, total };
   },
 
-  // Create a new product
-  createProduct: async (productData) => {
-    try {
-      const [result] = await pool.query(
-        'INSERT INTO producto (nombre, marca, variante, descripcion, fecha) VALUES (?, ?, ?, ?, NOW())',
-        [
-          productData.nombre, 
-          productData.marca, 
-          productData.variante, 
-          productData.descripcion
-        ]
-      );
-      return result.insertId;
-    } catch (err) {
-      console.error('Database error in createProduct:', err);
-      throw err;
-    }
-  },
-
+// Create a new product
+createProduct: async (productData) => {
+  try {
+    const [result] = await pool.query(
+      // Add id_producto to the query
+      'INSERT INTO producto (id_producto, nombre, marca, variante, descripcion, fecha) VALUES (?, ?, ?, ?, ?, NOW())',
+      [
+        productData.id_producto, // Add the barcode ID
+        productData.nombre, 
+        productData.marca, 
+        productData.variante, 
+        productData.descripcion
+      ]
+    );
+    return result.insertId;
+  } catch (err) {
+    console.error('Database error in createProduct:', err);
+    throw err;
+  }
+},
   // Get single product by ID
   getProductById: async (id) => {
     const [rows] = await pool.query(

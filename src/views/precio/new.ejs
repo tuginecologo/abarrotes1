@@ -4,10 +4,15 @@
 <form action="/precio/nuevo" method="POST">
   <div class="form-group">
     <label>Producto:
-      <select name="id_producto" required>
+      <select name="id_producto" required style="width: 100%; max-width: 600px;">
         <option value="">Seleccione un producto</option>
         <% availableProducts.forEach(producto => { %>
-          <option value="<%= producto.id_producto %>"><%= producto.nombre %></option>
+          <option value="<%= producto.id_producto %>">
+            <%= producto.id_producto %> - <%= producto.nombre %>
+            <% if (producto.variante) { %>| Variante: <%= producto.variante %><% } %>
+            <% if (producto.marca) { %>| Marca: <%= producto.marca %><% } %>
+            <% if (producto.descripcion) { %>| Desc: <%= producto.descripcion %><% } %>
+          </option>
         <% }) %>
       </select>
     </label>

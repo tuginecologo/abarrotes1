@@ -33,33 +33,18 @@
     <label for="motivo">Motivo de la devolución</label>
     <textarea class="form-control" id="motivo" name="motivo" rows="3" required></textarea>
   </div>
-<div class="row">
-    <div class="col-md-6">
-      <div class="form-group">
-        <label for="mediodepago">Método de Devolución</label>
-        <select class="form-control" id="mediodepago" name="mediodepago" required>
-          <option value="">Seleccionar método</option>
-          <option value="1">Efectivo</option>
-          <option value="2">Yape</option>
-          <option value="3">Plin</option>
-          <option value="4">Transferencia</option>
-        </select>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="form-group" id="noperacionGroup" style="display: none;">
-        <label for="noperacion">Número de Operación</label>
-        <input type="text" class="form-control" id="noperacion" name="noperacion" 
-               placeholder="Ingrese número de operación">
-      </div>
-    </div>
-  </div>
+
+
   <h3>Productos a devolver</h3>
   <div class="table-responsive">
     <table class="table" id="productosTable">
       <thead>
         <tr>
+          <th>ID</th>
           <th>Producto</th>
+          <th>Marca</th>
+          <th>Variante</th>
+          <th>Descripción</th>
           <th>Precio Unitario</th>
           <th>Cantidad Comprada</th>
           <th>Cantidad a Devolver</th>
@@ -69,7 +54,11 @@
       <tbody>
         <% venta.detalles.forEach(detalle => { %>
           <tr data-id="<%= detalle.id_producto %>">
+            <td><%= detalle.id_producto %></td>
             <td><%= detalle.producto_nombre %></td>
+            <td><%= detalle.marca || 'N/A' %></td>
+            <td><%= detalle.variante || 'N/A' %></td>
+            <td><%= detalle.descripcion || 'N/A' %></td>
             <td class="precio">S/ <%= detalle.precio.toFixed(2) %></td>
             <td><%= detalle.cantidad %></td>
             <td>
@@ -83,11 +72,63 @@
       </tbody>
       <tfoot>
         <tr>
-          <th colspan="4">Total a Devolver</th>
+          <th colspan="8">Total a Devolver</th>
           <th id="totalDevolucion">S/ 0.00</th>
         </tr>
       </tfoot>
     </table>
+  </div>
+
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="mediodepago">Método de Devolución</label>
+        <select class="form-control" id="mediodepago" name="mediodepago" required>
+          <option value="">Seleccionar método</option>
+          <option value="1">Efectivo</option>
+          <option value="2">Yape</option>
+          <option value="3">Plin</option>
+          <option value="4">Transferencia</option>
+          <option value="5">Pago Mixto</option> <!-- New option -->
+        </select>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group" id="noperacionGroup" style="display: none;">
+        <label for="noperacion">Número de Operación</label>
+        <input type="text" class="form-control" id="noperacion" name="noperacion" 
+               placeholder="Ingrese número de operación">
+      </div>
+    </div>
+  </div>
+
+  <!-- Mixed Payment Fields (initially hidden) -->
+  <div id="mixedPaymentGroup" style="display: none;">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="efectivoAmount">Monto en Efectivo (S/)</label>
+          <input type="number" class="form-control" id="efectivoAmount" name="efectivoAmount" step="0.01" min="0" required>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="electronicMethod">Método Electrónico</label>
+          <select class="form-control" id="electronicMethod" name="electronicMethod" required>
+            <option value="">Seleccionar método</option>
+            <option value="2">Yape</option>
+            <option value="3">Plin</option>
+            <option value="4">Transferencia</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="form-group" id="mixedOperationGroup">
+      <input type="hidden" name="payment_details" id="payment_details">
+      <label for="electronicOperation">N° Operación Electrónica</label>
+      <input type="text" class="form-control" id="electronicOperation" name="electronicOperation" required>
+    </div>
   </div>
 
   <input type="hidden" name="productos" id="productosInput">
@@ -101,53 +142,203 @@
     </a>
   </div>
 </form>
-
 <script>
-  // Calculate subtotals and total
-  function calculateTotals() {
-    let total = 0;
-    const productos = [];
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get all elements
+    const mediodepagoSelect = document.getElementById('mediodepago');
+    const noperacionInput = document.getElementById('noperacion');
+    const efectivoAmount = document.getElementById('efectivoAmount');
+    const electronicMethod = document.getElementById('electronicMethod');
+    const electronicOperation = document.getElementById('electronicOperation');
+    const noperacionGroup = document.getElementById('noperacionGroup');
+    const mixedPaymentGroup = document.getElementById('mixedPaymentGroup');
+    const mixedOperationGroup = document.getElementById('mixedOperationGroup');
     
-    document.querySelectorAll('#productosTable tbody tr').forEach(row => {
-      const cantidadInput = row.querySelector('.cantidad-input');
-      const cantidad = parseInt(cantidadInput.value);
-      const precio = parseFloat(cantidadInput.dataset.precio);
+    // Set initial state of payment fields
+    const initialPaymentMethod = mediodepagoSelect.value;
+    
+    if (initialPaymentMethod !== '2' && initialPaymentMethod !== '3' && initialPaymentMethod !== '4') {
+      noperacionInput.removeAttribute('required');
+    }
+    
+    if (initialPaymentMethod !== '5') {
+      efectivoAmount.removeAttribute('required');
+      electronicMethod.removeAttribute('required');
+      electronicOperation.removeAttribute('required');
+    }
+  
+    // Calculate subtotals and total
+    function calculateTotals() {
+      let total = 0;
+      const productos = [];
       
-      if (cantidad > 0) {
-        const subtotal = cantidad * precio;
-        row.querySelector('.subtotal').textContent = `S/ ${subtotal.toFixed(2)}`;
-        total += subtotal;
+      document.querySelectorAll('#productosTable tbody tr').forEach(row => {
+        const cantidadInput = row.querySelector('.cantidad-input');
+        const cantidad = parseInt(cantidadInput.value);
+        const precio = parseFloat(cantidadInput.dataset.precio);
         
-        productos.push({
-          id_producto: row.dataset.id,
-          cantidad: cantidad,
-          precio: precio
-        });
+        if (cantidad > 0) {
+          const subtotal = cantidad * precio;
+          row.querySelector('.subtotal').textContent = `S/ ${subtotal.toFixed(2)}`;
+          total += subtotal;
+          
+          productos.push({
+            id_producto: row.dataset.id,
+            cantidad: cantidad,
+            precio: precio
+          });
+        } else {
+          row.querySelector('.subtotal').textContent = 'S/ 0.00';
+        }
+      });
+      
+      document.getElementById('totalDevolucion').textContent = `S/ ${total.toFixed(2)}`;
+      document.getElementById('productosInput').value = JSON.stringify(productos);
+      
+      // Update mixed payment validation if needed
+      updateMixedPaymentValidation(total);
+    }
+    
+    // Listen to quantity changes
+    document.querySelectorAll('.cantidad-input').forEach(input => {
+      input.addEventListener('change', calculateTotals);
+      input.addEventListener('input', calculateTotals);
+    });
+    
+    // Show/hide operation number field based on payment method
+    mediodepagoSelect.addEventListener('change', function() {
+      const isElectronic = (this.value === '2' || this.value === '3' || this.value === '4');
+      const isMixed = (this.value === '5');
+      
+      noperacionGroup.style.display = isElectronic ? 'block' : 'none';
+      mixedPaymentGroup.style.display = isMixed ? 'block' : 'none';
+      
+      // Set required attributes
+      if (isElectronic) {
+        noperacionInput.setAttribute('required', 'required');
       } else {
-        row.querySelector('.subtotal').textContent = 'S/ 0.00';
+        noperacionInput.removeAttribute('required');
+        noperacionInput.value = '';
+      }
+      
+      if (isMixed) {
+        efectivoAmount.setAttribute('required', 'required');
+        electronicMethod.setAttribute('required', 'required');
+        electronicOperation.setAttribute('required', 'required');
+      } else {
+        efectivoAmount.removeAttribute('required');
+        electronicMethod.removeAttribute('required');
+        electronicOperation.removeAttribute('required');
+        efectivoAmount.value = '';
+        electronicMethod.value = '';
+        electronicOperation.value = '';
       }
     });
     
-    document.getElementById('totalDevolucion').textContent = `S/ ${total.toFixed(2)}`;
-    document.getElementById('productosInput').value = JSON.stringify(productos);
-  }
-  
-  // Listen to quantity changes
-  document.querySelectorAll('.cantidad-input').forEach(input => {
-    input.addEventListener('change', calculateTotals);
-    input.addEventListener('input', calculateTotals);
+    // Handle electronic method change within mixed payment
+    electronicMethod.addEventListener('change', function() {
+      const hasElectronicMethod = this.value !== '';
+      mixedOperationGroup.style.display = hasElectronicMethod ? 'block' : 'none';
+    });
+    
+    // Validate mixed payment
+    function updateMixedPaymentValidation(total) {
+      const paymentMethod = mediodepagoSelect.value;
+      
+      if (paymentMethod === '5') {
+        const efectivoAmountValue = parseFloat(efectivoAmount.value) || 0;
+        
+        if (efectivoAmountValue > total) {
+          efectivoAmount.setCustomValidity('El monto en efectivo no puede ser mayor al total a devolver');
+        } else {
+          efectivoAmount.setCustomValidity('');
+        }
+      }
+    }
+    
+    // Add event listener for mixed payment amount changes
+    efectivoAmount.addEventListener('input', function() {
+      const total = parseFloat(document.getElementById('totalDevolucion').textContent.replace('S/ ', ''));
+      updateMixedPaymentValidation(total);
+    });
+    
+    // Form submission validation
+    document.getElementById('returnForm').addEventListener('submit', function(e) {
+      const paymentMethod = mediodepagoSelect.value;
+      const total = parseFloat(document.getElementById('totalDevolucion').textContent.replace('S/ ', ''));
+      
+      // Validate electronic payments
+      if (paymentMethod === '2' || paymentMethod === '3' || paymentMethod === '4') {
+        if (!noperacionInput.value.trim()) {
+          e.preventDefault();
+          alert('Debe ingresar el número de operación para devoluciones electrónicas');
+          noperacionInput.focus();
+          return;
+        }
+      }
+      
+      // Validate mixed payment
+      if (paymentMethod === '5') {
+    const efectivoAmountValue = parseFloat(efectivoAmount.value) || 0;
+    const electronicMethodValue = electronicMethod.value;
+    const electronicOperationValue = electronicOperation.value;
+    const total = parseFloat(document.getElementById('totalDevolucion').textContent.replace('S/ ', ''));
+    
+    // Validation
+    if (!electronicMethodValue) {
+      e.preventDefault();
+      alert('Debe seleccionar un método electrónico para la devolución mixta');
+      return;
+    }
+    
+    if (efectivoAmountValue <= 0) {
+      e.preventDefault();
+      alert('El monto en efectivo debe ser mayor a 0');
+      return;
+    }
+    
+    const electronicAmount = total - efectivoAmountValue;
+    if (electronicAmount <= 0) {
+      e.preventDefault();
+      alert('El monto electrónico debe ser mayor a 0. Reduzca el monto en efectivo.');
+      return;
+    }
+    
+    if (!electronicOperationValue) {
+      e.preventDefault();
+      alert('Debe ingresar el número de operación para el pago electrónico');
+      return;
+    }
+    
+// Store mixed payment data in payment_details field
+const mixedPaymentData = {
+  efectivo: efectivoAmountValue,
+  electronico: electronicAmount,
+  metodo_electronico: electronicMethodValue,
+  operacion_electronica: electronicOperationValue
+};
+
+// Store in payment_details field as JSON string
+document.getElementById('payment_details').value = JSON.stringify(mixedPaymentData);
+// Store only the operation number in noperacion
+document.getElementById('noperacion').value = electronicOperationValue;
+  };
+      
+      
+      // Validate that at least one product is being returned
+      const productos = Array.from(document.querySelectorAll('#productosTable tbody tr')).filter(row => {
+        const cantidadInput = row.querySelector('.cantidad-input');
+        return parseInt(cantidadInput.value) > 0;
+      });
+      
+      if (productos.length === 0) {
+        e.preventDefault();
+        alert('Debe seleccionar al menos un producto para devolver');
+        return;
+      }
+    });
+    // Initial calculation
+    calculateTotals();
   });
-  
-  // Initial calculation
-  calculateTotals();
-  // Show/hide operation number field based on payment method
-document.getElementById('mediodepago').addEventListener('change', function() {
-  const noperacionGroup = document.getElementById('noperacionGroup');
-  // Show for electronic payment methods (2: Yape, 3: Plin, 4: Transferencia)
-  noperacionGroup.style.display = (this.value === '2' || this.value === '3' || this.value === '4') ? 'block' : 'none';
-  
-  // Make field required for electronic payments
-  document.getElementById('noperacion').required = (this.value === '2' || this.value === '3' || this.value === '4');
-});
-</script>
+  </script>
 <%- include('../partials/footer') %>

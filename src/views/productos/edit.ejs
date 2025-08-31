@@ -2,6 +2,14 @@
 <h1>Editar Producto</h1>
 
 <form action="/productos/editar/<%= product.id_producto %>" method="POST">
+  <!-- Add this read-only barcode field -->
+  <div class="form-group">
+    <label>Código de Barras (ID): 
+      <input type="text" value="<%= product.id_producto %>" readonly 
+             style="background-color: #f0f0f0; cursor: not-allowed;">
+    </label>
+  </div>
+  
   <div class="form-group">
     <label>Nombre: <input type="text" name="nombre" value="<%= product.nombre %>" required></label>
   </div>

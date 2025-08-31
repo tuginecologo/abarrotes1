@@ -1,6 +1,22 @@
 <%- include('../partials/header') %>
 <h1>Lista de Productos</h1>
 
+<!-- Barcode Scanner Field -->
+<div class="form-group">
+  <label for="barcode-scanner">Escáner de Código de Barras (ID Producto):</label>
+  <input type="text" class="form-control" id="barcode-scanner" 
+         placeholder="Escaneé el código de barras o ingrese el ID del producto" 
+         autocomplete="off" style="max-width: 600px;">
+  <small class="form-text text-muted">
+    Use un escáner de código de barras o ingrese manualmente el ID del producto. Presione Enter después de escanear.
+  </small>
+</div>
+
+<!-- Show All Products button (initially hidden) -->
+<button id="show-all-btn" class="btn" style="display: none; margin-bottom: 15px;">
+  <i class="fas fa-eye"></i> Mostrar Todos los Productos
+</button>
+
 <!-- Search Form -->
 <form action="/productos" method="GET" class="search-form">
   <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar...">
@@ -21,7 +37,7 @@
     </a>
   </div>
   
-  <table>
+  <table id="productos-table">
     <thead>
       <tr>
         <!-- <th><input type="checkbox" id="select-all"></th> -->
@@ -36,7 +52,7 @@
     </thead>
     <tbody>
       <% products.forEach(product => { %>
-        <tr>
+        <tr data-product-id="<%= product.id_producto %>">
           <!-- <td><input type="checkbox" name="productIds" value="<%= product.id_producto %>"></td> -->
           <td><%= product.id_producto %></td>
           <td><%= product.nombre %></td>
@@ -72,23 +88,78 @@
   <% } %>
 </div>
 
-<!-- <script>
-  // Select all checkbox functionality
-  document.getElementById('select-all')?.addEventListener('change', function(e) {
-    const checkboxes = document.querySelectorAll('input[name="productIds"]');
-    checkboxes.forEach(checkbox => {
-      checkbox.checked = e.target.checked;
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const barcodeScanner = document.getElementById('barcode-scanner');
+  const showAllBtn = document.getElementById('show-all-btn');
+  const allRows = document.querySelectorAll('#productos-table tbody tr');
+  
+  // Store all products initially
+  const allProducts = Array.from(allRows);
+  
+  // Auto-focus on barcode scanner field
+  barcodeScanner.focus();
+
+  // Show all products button functionality
+  showAllBtn.addEventListener('click', function() {
+    // Show all rows
+    allRows.forEach(row => {
+      row.style.display = '';
     });
+    
+    // Hide the show all button
+    showAllBtn.style.display = 'none';
+    
+    // Focus back on barcode scanner
+    barcodeScanner.focus();
   });
 
-  // Form submission handler
-  document.getElementById('bulkDeleteForm')?.addEventListener('submit', function(e) {
-    const checkedBoxes = document.querySelectorAll('input[name="productIds"]:checked');
-    if (checkedBoxes.length === 0) {
+  // Barcode scanner functionality
+  barcodeScanner.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
       e.preventDefault();
-      alert('Por favor seleccione al menos un producto para eliminar');
+      const productId = this.value.trim();
+      
+      if (productId) {
+        let found = false;
+        
+        // Hide all rows first
+        allRows.forEach(row => {
+          row.style.display = 'none';
+        });
+        
+        // Search for the specific product
+        for (let row of allRows) {
+          const rowProductId = row.getAttribute('data-product-id');
+          
+          if (rowProductId === productId) {
+            // Show only the found product
+            row.style.display = '';
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            found = true;
+            
+            // Show the "Show All" button
+            showAllBtn.style.display = 'inline-block';
+            break;
+          }
+        }
+        
+        if (!found) {
+          // If not found, show all products and show alert
+          allRows.forEach(row => {
+            row.style.display = '';
+          });
+          showAllBtn.style.display = 'none';
+          alert('No se encontró el producto con ID: ' + productId);
+        }
+        
+        // Clear the field and focus again for next scan
+        this.value = '';
+        this.focus();
+      }
     }
   });
-</script> -->
+});
+</script>
 
 <%- include('../partials/footer') %>

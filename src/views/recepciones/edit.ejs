@@ -24,7 +24,7 @@
     </div>
     <div class="form-group">
         <label>Producto:
-          <select name="id_producto" id="producto-select" required>
+          <select name="id_producto" id="producto-select" required style="width: 100%; max-width: 600px;">
             <option value="">Cargando productos...</option>
           </select>
         </label>
@@ -82,7 +82,15 @@
         let options = '<option value="">Seleccione un producto</option>';
         productos.forEach(producto => {
           const selected = (id_proveedor == currentProveedorId && producto.id_producto == currentProductId) ? 'selected' : '';
-          options += `<option value="${producto.id_producto}" ${selected}>${producto.nombre}</option>`;
+          options += `<option value="${producto.id_producto}" ${selected}
+                      data-variante="${producto.variante || ''}"
+                      data-marca="${producto.marca || ''}"
+                      data-descripcion="${producto.descripcion || ''}">
+            ${producto.id_producto} - ${producto.nombre} 
+            ${producto.variante ? '| Variante: ' + producto.variante : ''}
+            ${producto.marca ? '| Marca: ' + producto.marca : ''}
+            ${producto.descripcion ? '| Desc: ' + producto.descripcion : ''}
+          </option>`;
         });
         
         productoSelect.innerHTML = options;
@@ -94,19 +102,18 @@
     }
   
     // Load products when page loads if supplier is already selected
-// In edit.ejs
-document.addEventListener('DOMContentLoaded', () => {
-  const proveedorSelect = document.getElementById('proveedor-select');
-  if (currentProveedorId) {
-    loadProductos(currentProveedorId).then(() => {
-      // After products load, select the current product
-      const productoSelect = document.getElementById('producto-select');
-      if (currentProductId) {
-        productoSelect.value = currentProductId;
+    document.addEventListener('DOMContentLoaded', () => {
+      const proveedorSelect = document.getElementById('proveedor-select');
+      if (currentProveedorId) {
+        loadProductos(currentProveedorId).then(() => {
+          // After products load, select the current product
+          const productoSelect = document.getElementById('producto-select');
+          if (currentProductId) {
+            productoSelect.value = currentProductId;
+          }
+        });
       }
     });
-  }
-});
 </script>
 
 <%- include('../partials/footer') %>

@@ -47,39 +47,42 @@ module.exports = {
 //     return await productopublicoRepository.deleteProductoPublico(id);
 //   },
 
- // Export to Excel
-  exportToExcel: async () => {
-    const workbook = new excel.Workbook();
-    const worksheet = workbook.addWorksheet('Precios');
+// Export to Excel
+exportToExcel: async () => {
+  const workbook = new excel.Workbook();
+  const worksheet = workbook.addWorksheet('Precios');
 
-    const { productos } = await precioRepository.getPrecios(1, 10000);
+  const { productos } = await precioRepository.getPrecios(1, 10000);
 
-    worksheet.columns = [
-      { header: 'ID', key: 'id_precio', width: 10 },
-      { header: 'Producto', key: 'nombre', width: 30 },
-      { header: 'Precio', key: 'precio', width: 15 }
-    ];
+  worksheet.columns = [
+    { header: 'ID Producto', key: 'id_producto', width: 15 },
+    { header: 'Producto', key: 'nombre', width: 30 },
+    { header: 'Marca', key: 'marca', width: 20 },
+    { header: 'Descripción', key: 'descripcion', width: 40 },
+    { header: 'Variante', key: 'variante', width: 20 },
+    { header: 'Precio', key: 'precio', width: 15 }
+  ];
 
-    productos.forEach(producto => {
-      worksheet.addRow(producto);
-    });
+  productos.forEach(producto => {
+    worksheet.addRow(producto);
+  });
 
-    // Format price
-    worksheet.eachRow((row) => {
-      const precioCell = row.getCell('precio');
-      if (precioCell.value) {
-        precioCell.numFmt = '"S/"#,##0.00';
-      }
-    });
-
-    const exportDir = path.join(__dirname, '../public/exports');
-    if (!fs.existsSync(exportDir)) {
-      fs.mkdirSync(exportDir, { recursive: true });
+  // Format price
+  worksheet.eachRow((row) => {
+    const precioCell = row.getCell('precio');
+    if (precioCell.value) {
+      precioCell.numFmt = '"S/"#,##0.00';
     }
+  });
 
-    const exportPath = path.join(exportDir, 'precios.xlsx');
-    await workbook.xlsx.writeFile(exportPath);
-
-    return exportPath;
+  const exportDir = path.join(__dirname, '../public/exports');
+  if (!fs.existsSync(exportDir)) {
+    fs.mkdirSync(exportDir, { recursive: true });
   }
+
+  const exportPath = path.join(exportDir, 'precios.xlsx');
+  await workbook.xlsx.writeFile(exportPath);
+
+  return exportPath;
+}
 };

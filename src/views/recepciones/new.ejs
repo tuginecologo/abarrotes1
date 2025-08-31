@@ -5,16 +5,35 @@
 <form id="recepcionForm" action="/recepciones/nuevo" method="POST">
   <div class="card mb-4">
     <div class="card-body">
+      <!-- Barcode Scanner Field -->
+      <div class="form-group">
+        <label for="barcode-scanner">Escáner de Código de Barras (ID Producto):</label>
+        <input type="text" class="form-control" id="barcode-scanner" 
+               placeholder="Escaneé el código de barras o ingrese el ID del producto" 
+               autocomplete="off">
+        <small class="form-text text-muted">
+          Use un escáner de código de barras o ingrese manualmente el ID del producto. Presione Enter después de escanear.
+        </small>
+      </div>
+
       <div class="form-group">
         <label for="id_compra">Compra a Recepcionar</label>
-        <select class="form-control" id="id_compra" name="id_compra" required>
+        <select class="form-control" id="id_compra" name="id_compra" required style="width: 100%; max-width: 600px;">
           <option value="">Seleccione una compra</option>
           <% options.compras.forEach(compra => { %>
             <option value="<%= compra.id_compra %>" 
                     data-producto="<%= compra.producto_nombre %>"
                     data-proveedor="<%= compra.proveedor_nombre %>"
-                    data-cantidad="<%= compra.cantidad_comprada %>">
-              <%= compra.producto_nombre %> - <%= compra.proveedor_nombre %> 
+                    data-cantidad="<%= compra.cantidad_comprada %>"
+                    data-variante="<%= compra.producto_variante || '' %>"
+                    data-marca="<%= compra.producto_marca || '' %>"
+                    data-descripcion="<%= compra.producto_descripcion || '' %>"
+                    data-id-producto="<%= compra.id_producto %>">
+              <%= compra.id_compra %> - <%= compra.producto_nombre %> 
+              <% if (compra.producto_variante) { %>| Variante: <%= compra.producto_variante %><% } %>
+              <% if (compra.producto_marca) { %>| Marca: <%= compra.producto_marca %><% } %>
+              <% if (compra.producto_descripcion) { %>| Desc: <%= compra.producto_descripcion %><% } %>
+              - <%= compra.proveedor_nombre %> 
               (Comprado: <%= compra.cantidad_comprada %>, Fecha: <%= new Date(compra.fecha_compra).toLocaleDateString() %>)
             </option>
           <% }) %>
@@ -32,6 +51,36 @@
           <div class="form-group">
             <label for="proveedor-display">Proveedor:</label>
             <input type="text" class="form-control" id="proveedor-display" readonly>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="id-producto-display">ID Producto:</label>
+            <input type="text" class="form-control" id="id-producto-display" readonly>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="variante-display">Variante:</label>
+            <input type="text" class="form-control" id="variante-display" readonly>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="marca-display">Marca:</label>
+            <input type="text" class="form-control" id="marca-display" readonly>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="descripcion-display">Descripción:</label>
+            <textarea class="form-control" id="descripcion-display" readonly rows="2"></textarea>
           </div>
         </div>
       </div>
@@ -83,5 +132,106 @@
     <i class="fas fa-times"></i> Cancelar
   </a>
 </form>
-<script src="/js/recepciones.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const barcodeScanner = document.getElementById('barcode-scanner');
+  const compraSelect = document.getElementById('id_compra');
+  const productoDisplay = document.getElementById('producto-display');
+  const proveedorDisplay = document.getElementById('proveedor-display');
+  const idProductoDisplay = document.getElementById('id-producto-display');
+  const varianteDisplay = document.getElementById('variante-display');
+  const marcaDisplay = document.getElementById('marca-display');
+  const descripcionDisplay = document.getElementById('descripcion-display');
+  const cantidadInput = document.getElementById('cantidad');
+  const maxCantidadSpan = document.getElementById('max-cantidad');
+
+  // Auto-focus on barcode scanner field
+  barcodeScanner.focus();
+
+  // Barcode scanner functionality
+  barcodeScanner.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const productId = this.value.trim();
+      
+      if (productId) {
+        // Search for purchases with this product ID
+        const options = compraSelect.options;
+        let found = false;
+        
+        for (let i = 0; i < options.length; i++) {
+          const option = options[i];
+          const optionProductId = option.getAttribute('data-id-producto');
+          
+          if (optionProductId === productId) {
+            compraSelect.value = option.value;
+            compraSelect.dispatchEvent(new Event('change'));
+            found = true;
+            
+            // Auto-focus on quantity field after selection
+            cantidadInput.focus();
+            cantidadInput.select();
+            break;
+          }
+        }
+        
+        if (!found) {
+          alert('No se encontró ninguna compra para el producto con ID: ' + productId);
+          this.value = '';
+          this.focus();
+        }
+      }
+    }
+  });
+
+  // Clear barcode field when compra selection changes
+  compraSelect.addEventListener('change', function() {
+    barcodeScanner.value = '';
+  });
+
+  compraSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    
+    if (selectedOption.value) {
+      // Update basic info
+      productoDisplay.value = selectedOption.getAttribute('data-producto');
+      proveedorDisplay.value = selectedOption.getAttribute('data-proveedor');
+      
+      // Update product details
+      idProductoDisplay.value = selectedOption.getAttribute('data-id-producto');
+      varianteDisplay.value = selectedOption.getAttribute('data-variante') || '-';
+      marcaDisplay.value = selectedOption.getAttribute('data-marca') || '-';
+      descripcionDisplay.value = selectedOption.getAttribute('data-descripcion') || '-';
+      
+      // Update max quantity
+      const maxCantidad = selectedOption.getAttribute('data-cantidad');
+      maxCantidadSpan.textContent = maxCantidad;
+      cantidadInput.setAttribute('max', maxCantidad);
+      
+      // Auto-fill quantity with max available
+      cantidadInput.value = maxCantidad;
+    } else {
+      // Clear all fields if no selection
+      productoDisplay.value = '';
+      proveedorDisplay.value = '';
+      idProductoDisplay.value = '';
+      varianteDisplay.value = '';
+      marcaDisplay.value = '';
+      descripcionDisplay.value = '';
+      maxCantidadSpan.textContent = '0';
+      cantidadInput.removeAttribute('max');
+      cantidadInput.value = '';
+    }
+  });
+
+  // Prevent form submission when pressing Enter in barcode field
+  document.getElementById('recepcionForm').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.id === 'barcode-scanner') {
+      e.preventDefault();
+    }
+  });
+});
+</script>
+
 <%- include('../partials/footer') %>

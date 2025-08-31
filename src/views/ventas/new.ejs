@@ -2,7 +2,81 @@
 
 <h1>Nueva Venta</h1>
 
+<div class="form-group">
+  <label for="barcode-scanner">Escáner de Código de Barras (ID Producto):</label>
+  <input type="text" class="form-control" id="barcode-scanner" 
+         placeholder="Escaneé el código de barras o ingrese el ID del producto" 
+         autocomplete="off" style="max-width: 600px;">
+  <small class="form-text text-muted">
+    Use un escáner de código de barras o ingrese manualmente el ID del producto. Presione Enter después de escanear.
+  </small>
+</div>
+
 <form id="ventaForm" action="/ventas/nueva" method="POST">
+  <h3>Productos</h3>
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <select class="form-control" id="productoSelect" style="width: 100%; max-width: 600px;">
+        <option value="">Seleccionar producto</option>
+        <% options.productos.forEach(producto => { %>
+          <% if (producto.cantidad > 0) { %>
+            <option value="<%= producto.id_producto %>" 
+                    data-precio="<%= producto.precio %>"
+                    data-stock="<%= producto.cantidad %>"
+                    data-nombre="<%= producto.nombre %>"
+                    data-variante="<%= producto.variante || '' %>"
+                    data-marca="<%= producto.marca || '' %>"
+                    data-descripcion="<%= producto.descripcion || '' %>">
+              <%= producto.id_producto %> - <%= producto.nombre %> 
+              <% if (producto.variante) { %>| Variante: <%= producto.variante %><% } %>
+              <% if (producto.marca) { %>| Marca: <%= producto.marca %><% } %>
+              <% if (producto.descripcion) { %>| Desc: <%= producto.descripcion %><% } %>
+              (S/ <%= Number(producto.precio).toFixed(2) %>, Stock: <%= producto.cantidad %>)
+            </option>
+          <% } %>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control" id="productoCantidad" min="1" value="1" placeholder="Cantidad">
+    </div>
+    <div class="col-md-4">
+      <button type="button" class="btn btn-primary" id="agregarProducto">
+        <i class="fas fa-plus"></i> Agregar
+      </button>
+    </div>
+  </div>
+
+  <button type="button" id="refreshStock" class="btn btn-info">
+    <i class="fas fa-sync-alt"></i> Actualizar Stock
+  </button>
+
+  <table class="table" id="productosTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Producto</th>
+        <th>Marca</th>
+        <th>Variante</th>
+        <th>Precio Unitario</th>
+        <th>Cantidad</th>
+        <th>Subtotal</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="6">Total</th>
+        <th id="totalVenta">S/ 0.00</th>
+        <th></th>
+      </tr>
+    </tfoot>
+  </table>
+
+  <input type="hidden" name="productos" id="productosInput">
+
   <div class="row">
     <div class="col-md-6">
       <div class="form-group">
@@ -47,7 +121,43 @@
           <option value="2">Yape</option>
           <option value="3">Plin</option>
           <option value="4">Transferencia</option>
+          <option value="5">Pago Mixto</option>
         </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="mixedPaymentGroup" style="display: none;">
+    <input type="hidden" name="payment_details" id="payment_details">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="efectivoAmount">Monto en Efectivo (S/)</label>
+          <input type="number" class="form-control" id="efectivoAmount" name="efectivoAmount" step="0.01" min="0">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="electronicMethod">Método Electrónico</label>
+          <select class="form-control" id="electronicMethod" name="electronicMethod">
+            <option value="">Seleccionar método</option>
+            <option value="2">Yape</option>
+            <option value="3">Plin</option>
+            <option value="4">Transferencia</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" id="mixedOperationGroup">
+      <label for="electronicOperation">N° Operación Electrónica</label>
+      <input type="text" class="form-control" id="electronicOperation" name="electronicOperation">
+    </div>
+    
+    <div class="form-group">
+      <label>Resumen de Pago:</label>
+      <div class="alert alert-info" id="paymentSummary">
+        Efectivo: S/ 0.00 + Electrónico: S/ 0.00 = Total: S/ 0.00
       </div>
     </div>
   </div>
@@ -57,80 +167,79 @@
     <input type="text" class="form-control" id="noperacion" name="noperacion">
   </div>
 
-  <h3>Productos</h3>
-  <div class="row mb-3">
-    <div class="col-md-6">
-      <select class="form-control" id="productoSelect">
-        <option value="">Seleccionar producto</option>
-        <% options.productos.forEach(producto => { %>
-          <% if (producto.cantidad > 0) { %>
-            <option value="<%= producto.id_producto %>" 
-                    data-precio="<%= producto.precio %>"
-                    data-stock="<%= producto.cantidad %>">
-              <%= producto.nombre %> - <%= producto.variante || 'Sin variante' %> 
-              (S/ <%= Number(producto.precio).toFixed(2) %>, Stock: <%= producto.cantidad %>)
-            </option>
-          <% } %>
-        <% }) %>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <input type="number" class="form-control" id="productoCantidad" min="1" value="1" placeholder="Cantidad">
-    </div>
-    <div class="col-md-4">
-      <button type="button" class="btn btn-primary" id="agregarProducto">
-        <i class="fas fa-plus"></i> Agregar
-      </button>
-    </div>
-  </div>
-
-  <button type="button" id="refreshStock" class="btn btn-info">
-    <i class="fas fa-sync-alt"></i> Actualizar Stock
-  </button>
-  
-
-
-  <table class="table" id="productosTable">
-    <thead>
-      <tr>
-        <th>Producto</th>
-        <th>Precio Unitario</th>
-        <th>Cantidad</th>
-        <th>Subtotal</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Productos se agregarán aquí dinámicamente -->
-    </tbody>
-    <tfoot>
-      <tr>
-        <th colspan="3">Total</th>
-        <th id="totalVenta">S/ 0.00</th>
-        <th></th>
-      </tr>
-    </tfoot>
-  </table>
-
-  <input type="hidden" name="productos" id="productosInput">
-
   <button type="submit" class="btn btn-success">
     <i class="fas fa-save"></i> Registrar Venta
   </button>
 </form>
 
 <script>
-  // Mostrar campo de número de operación solo para métodos electrónicos
-  document.getElementById('mediodepago').addEventListener('change', function() {
-    const noperacionGroup = document.getElementById('noperacionGroup');
-    noperacionGroup.style.display = (this.value === '2' || this.value === '3') ? 'block' : 'none';
+document.addEventListener('DOMContentLoaded', function() {
+  // Get all elements
+  const barcodeScanner = document.getElementById('barcode-scanner');
+  const productoSelect = document.getElementById('productoSelect');
+  const cantidadInput = document.getElementById('productoCantidad');
+  const mediodepagoSelect = document.getElementById('mediodepago');
+  const noperacionInput = document.getElementById('noperacion');
+  const efectivoAmount = document.getElementById('efectivoAmount');
+  const electronicMethod = document.getElementById('electronicMethod');
+  const electronicOperation = document.getElementById('electronicOperation');
+  
+  // Auto-focus on barcode scanner field
+  barcodeScanner.focus();
+  
+  // Set initial state of payment fields
+  const initialPaymentMethod = mediodepagoSelect.value;
+  
+  if (initialPaymentMethod !== '2' && initialPaymentMethod !== '3' && initialPaymentMethod !== '4') {
+    noperacionInput.removeAttribute('required');
+  }
+  
+  if (initialPaymentMethod !== '5') {
+    efectivoAmount.removeAttribute('required');
+    electronicMethod.removeAttribute('required');
+    electronicOperation.removeAttribute('required');
+  }
+
+  // Barcode scanner functionality
+  barcodeScanner.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const productId = this.value.trim();
+      
+      if (productId) {
+        // Search for product in dropdown
+        const options = productoSelect.options;
+        let found = false;
+        
+        for (let i = 0; i < options.length; i++) {
+          const option = options[i];
+          const optionProductId = option.value;
+          
+          if (optionProductId === productId) {
+            productoSelect.value = option.value;
+            found = true;
+            
+            // Automatically add the product with default quantity (1)
+            agregarProductoAlCarrito();
+            
+            break;
+          }
+        }
+
+        if (!found) {
+          alert('No se encontró el producto con ID: ' + productId);
+        }
+        
+        // Clear the field and focus again for next scan
+        this.value = '';
+        this.focus();
+      }
+    }
   });
 
-  // Manejar agregar productos
-  document.getElementById('agregarProducto').addEventListener('click', function() {
-    const productoSelect = document.getElementById('productoSelect');
-    const cantidadInput = document.getElementById('productoCantidad');
-    
+
+  // Function to add product to cart
+  function agregarProductoAlCarrito() {
     if (!productoSelect.value) {
       alert('Seleccione un producto');
       return;
@@ -138,7 +247,9 @@
 
     const selectedOption = productoSelect.options[productoSelect.selectedIndex];
     const idProducto = productoSelect.value;
-    const nombreProducto = selectedOption.text.split(' - ')[0];
+    const nombreProducto = selectedOption.dataset.nombre;
+    const marca = selectedOption.dataset.marca || 'N/A';
+    const variante = selectedOption.dataset.variante || 'N/A';
     const precio = parseFloat(selectedOption.dataset.precio);
     const cantidad = parseInt(cantidadInput.value);
     const stock = parseInt(selectedOption.dataset.stock);
@@ -164,6 +275,7 @@
         return;
       }
       
+      
       existingRow.querySelector('.cantidad').textContent = newCantidad;
       existingRow.querySelector('.subtotal').textContent = `S/ ${(precio * newCantidad).toFixed(2)}`;
     } else {
@@ -173,7 +285,10 @@
       row.dataset.id = idProducto;
       
       row.innerHTML = `
+        <td>${idProducto}</td>
         <td>${nombreProducto}</td>
+        <td>${marca}</td>
+        <td>${variante}</td>
         <td class="precio">S/ ${precio.toFixed(2)}</td>
         <td class="cantidad">${cantidad}</td>
         <td class="subtotal">S/ ${(precio * cantidad).toFixed(2)}</td>
@@ -190,9 +305,169 @@
     // Actualizar total
     actualizarTotal();
 
-    // Limpiar inputs
+    // Limpiar inputs (only clear select if using barcode)
     cantidadInput.value = 1;
+    productoSelect.value = '';
+  }
+
+  // Real-time payment calculation display
+  function updatePaymentSummary() {
+    const paymentMethod = mediodepagoSelect.value;
+    
+    if (paymentMethod === '5') {
+      const efectivoAmountValue = parseFloat(efectivoAmount.value) || 0;
+      const total = parseFloat(document.getElementById('totalVenta').textContent.replace('S/ ', ''));
+      const electronicAmount = total - efectivoAmountValue;
+      
+      document.getElementById('paymentSummary').innerHTML = `
+        Efectivo: S/ ${efectivoAmountValue.toFixed(2)} + 
+        Electrónico: S/ ${electronicAmount.toFixed(2)} = 
+        Total: S/ ${total.toFixed(2)}
+      `;
+    }
+  }
+
+  // Handle payment method change
+  mediodepagoSelect.addEventListener('change', function() {
+    const noperacionGroup = document.getElementById('noperacionGroup');
+    const mixedPaymentGroup = document.getElementById('mixedPaymentGroup');
+    
+    const isElectronic = (this.value === '2' || this.value === '3' || this.value === '4');
+    const isMixed = (this.value === '5');
+    
+    // Show/hide groups
+    noperacionGroup.style.display = isElectronic ? 'block' : 'none';
+    mixedPaymentGroup.style.display = isMixed ? 'block' : 'none';
+    
+    // Clear and set required attributes
+    if (isElectronic) {
+      noperacionInput.setAttribute('required', 'required');
+    } else {
+      noperacionInput.removeAttribute('required');
+      noperacionInput.value = '';
+    }
+    
+    if (isMixed) {
+      efectivoAmount.setAttribute('required', 'required');
+      electronicMethod.setAttribute('required', 'required');
+      electronicOperation.setAttribute('required', 'required');
+    } else {
+      efectivoAmount.removeAttribute('required');
+      electronicMethod.removeAttribute('required');
+      electronicOperation.removeAttribute('required');
+      efectivoAmount.value = '';
+      electronicMethod.value = '';
+      electronicOperation.value = '';
+    }
+    
+    // Update payment summary if mixed
+    if (isMixed) {
+      updatePaymentSummary();
+    } else {
+      document.getElementById('paymentSummary').innerHTML = '';
+    }
   });
+
+  // Handle electronic method change within mixed payment
+  electronicMethod.addEventListener('change', function() {
+    const hasElectronicMethod = this.value !== '';
+    document.getElementById('mixedOperationGroup').style.display = hasElectronicMethod ? 'block' : 'none';
+  });
+
+  // Add event listeners for real-time updates
+  efectivoAmount.addEventListener('input', updatePaymentSummary);
+    
+  // Validate ALL payment methods before form submission
+  document.getElementById('ventaForm').addEventListener('submit', function(e) {
+    const paymentMethod = mediodepagoSelect.value;
+    
+    // Validate products
+    const productos = Array.from(document.querySelectorAll('#productosTable tbody tr')).map(row => {
+      return {
+        id_producto: row.dataset.id,
+        nombre: row.querySelector('td:nth-child(2)').textContent,
+        cantidad: parseInt(row.querySelector('.cantidad').textContent),
+        precio: parseFloat(row.querySelector('.precio').textContent.replace('S/ ', ''))
+      };
+    });
+
+    if (productos.length === 0) {
+      e.preventDefault();
+      alert('Debe agregar al menos un producto');
+      return;
+    }
+
+    document.getElementById('productosInput').value = JSON.stringify(productos);
+
+    // Validate electronic payments
+    if (paymentMethod === '2' || paymentMethod === '3' || paymentMethod === '4') {
+      if (!noperacionInput.value.trim()) {
+        e.preventDefault();
+        alert('Debe ingresar el número de operación para pagos electrónicos');
+        noperacionInput.focus();
+        return;
+      }
+    }
+    
+    // Validate mixed payment
+    if (paymentMethod === '5') {
+      const efectivoAmountValue = parseFloat(efectivoAmount.value) || 0;
+      const electronicMethodValue = electronicMethod.value;
+      const electronicOperationValue = electronicOperation.value;
+      const total = parseFloat(document.getElementById('totalVenta').textContent.replace('S/ ', ''));
+      
+      // Validation
+      if (!electronicMethodValue) {
+        e.preventDefault();
+        alert('Debe seleccionar un método electrónico para el pago mixto');
+        electronicMethod.focus();
+        return;
+      }
+      
+      if (efectivoAmountValue <= 0) {
+        e.preventDefault();
+        alert('El monto en efectivo debe ser mayor a 0');
+        efectivoAmount.focus();
+        return;
+      }
+      
+      const electronicAmount = total - efectivoAmountValue;
+      
+      // Validate that electronic amount is positive
+      if (electronicAmount <= 0) {
+        e.preventDefault();
+        alert('El monto electrónico debe ser mayor a 0. Reduzca el monto en efectivo.');
+        efectivoAmount.focus();
+        return;
+      }
+      
+      if (!electronicOperationValue) {
+        e.preventDefault();
+        alert('Debe ingresar el número de operación para el pago electrónico');
+        electronicOperation.focus();
+        return;
+      }
+      
+      // Store mixed payment data in payment_details field
+      const mixedPaymentData = {
+        efectivo: efectivoAmountValue,
+        electronico: electronicAmount,
+        metodo_electronico: electronicMethodValue,
+        operacion_electronica: electronicOperationValue
+      };
+      
+      // Store in payment_details field as JSON string
+      document.getElementById('payment_details').value = JSON.stringify(mixedPaymentData);
+      // Store only the operation number in noperacion
+      document.getElementById('noperacion').value = electronicOperationValue;
+    }
+    
+    // If all validations pass, the form will submit naturally.
+    // No need for 'this.submit();'
+  });
+  
+  // Manejar agregar productos manualmente
+  document.getElementById('agregarProducto').addEventListener('click', agregarProductoAlCarrito);
 
   // Manejar eliminar productos
   document.addEventListener('click', function(e) {
@@ -210,33 +485,17 @@
     
     const total = subtotals.reduce((sum, current) => sum + current, 0);
     document.getElementById('totalVenta').textContent = `S/ ${total.toFixed(2)}`;
+    
+    // Update payment summary if mixed payment is selected
+    if (mediodepagoSelect.value === '5') {
+      updatePaymentSummary();
+    }
   }
-
-  // Preparar datos antes de enviar el formulario
-// In your view's JavaScript
-// Add this script at the bottom of your form
-document.getElementById('ventaForm').addEventListener('submit', function(e) {
-  const productos = Array.from(document.querySelectorAll('#productosTable tbody tr')).map(row => {
-    return {
-      id_producto: row.dataset.id,
-      nombre: row.querySelector('td:first-child').textContent,
-      cantidad: parseInt(row.querySelector('.cantidad').textContent),
-      precio: parseFloat(row.querySelector('.precio').textContent.replace('S/ ', ''))
-    };
-  });
-
-  if (productos.length === 0) {
-    e.preventDefault();
-    alert('Debe agregar al menos un producto');
-    return;
-  }
-
-  document.getElementById('productosInput').value = JSON.stringify(productos);
-});
 
   document.getElementById('refreshStock').addEventListener('click', async function() {
     const response = await fetch('/ventas/nueva');
     window.location.reload();
   });
+});
 </script>
 <%- include('../partials/footer') %>

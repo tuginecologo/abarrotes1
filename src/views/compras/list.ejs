@@ -22,9 +22,13 @@
   <thead>
     <tr>
       <!-- <th><input type="checkbox" id="select-all"></th> -->
-      <th>ID</th>
+      <th>ID Compra</th>
+      <th>ID Producto</th>
       <th>Fecha</th>
       <th>Producto</th>
+      <th>Variante</th>
+      <th>Marca</th>
+      <th>Descripción</th>
       <th>Cantidad</th>
       <th>Precio Unitario</th>
       <th>Total</th>
@@ -41,8 +45,12 @@
       <tr>
         <!-- <td><input type="checkbox" name="compraIds" value="<%= compra.id_compra %>" form="bulk-delete-form"></td> -->
         <td><%= compra.id_compra %></td>
+        <td><%= compra.id_producto %></td>
         <td><%= dateFormatter.format(compra.fecha) %></td>
         <td><%= compra.producto_nombre %></td>
+        <td><%= compra.producto_variante || '-' %></td>
+        <td><%= compra.producto_marca || '-' %></td>
+        <td><%= compra.producto_descripcion || '-' %></td>
         <td><%= compra.cantidad %></td>
         <td>S/ <%= compra.preciounitario.toFixed(2) %></td>
         <td>S/ <%= total.toFixed(2) %></td>

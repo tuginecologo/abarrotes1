@@ -2,6 +2,14 @@
 <h1>Nuevo Producto</h1>
 
 <form action="/productos/nuevo" method="POST">
+  <!-- Add this barcode field at the top -->
+  <div class="form-group">
+    <label>Código de Barras (ID): 
+      <input type="text" name="id_producto" required autofocus 
+             placeholder="Escanea el código de barras">
+    </label>
+  </div>
+  
   <div class="form-group">
     <label>Nombre: <input type="text" name="nombre" required></label>
   </div>

@@ -12,18 +12,19 @@ module.exports = {
     return await ventaRepository.getVentas(page, limit);
   },
 
-  // Get dropdown options
+// In ventaService.js - CORRECTED version
 getDropdownOptions: async () => {
   try {
     const [clientes, empleados, productos] = await Promise.all([
       ventaRepository.getClientes(),
       ventaRepository.getEmpleados(),
-      // Use the same stock calculation as the stock view
+      // Use the same stock calculation as the stock view BUT include marca
       pool.query(`
         SELECT 
           p.id_producto, 
           p.nombre, 
           p.variante, 
+          p.marca,  -- Just the column name, no JavaScript comments
           COALESCE(pr.precio, 0) as precio,
           COALESCE(
             (SELECT SUM(cantidad) FROM recepcion WHERE id_producto = p.id_producto), 
@@ -60,7 +61,8 @@ getDropdownOptions: async () => {
       empleados,
       productos: filteredProducts.map(p => ({
         ...p,
-        precio: Number(p.precio) || 0
+        precio: Number(p.precio) || 0,
+        marca: p.marca || ''  // Ensure marca is included
       }))
     };
   } catch (error) {
@@ -68,22 +70,42 @@ getDropdownOptions: async () => {
     throw error;
   }
 },
-  // Create new sale
-// In createVenta method
+// Create new sale
 createVenta: async (ventaData) => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    // 1. Create venta record
-    const [ventaResult] = await connection.query(
-      `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion)
-       VALUES (?, ?, ?, ?, ?)`,
-      [ventaData.dnivend, ventaData.dnicomp, ventaData.fecha, 
-       ventaData.mediodepago, ventaData.noperacion]
-    );
-    const id_venta = ventaResult.insertId;
+    // Use ventaData.noperacion and ventaData.payment_details instead of undefined variables
+    let noperacionToStore = ventaData.noperacion;
+    let paymentDetailsToStore = ventaData.payment_details;
+    
+    // For mixed payments, ensure proper data structure
+    if (ventaData.mediodepago === '5' && ventaData.payment_details) {
+      try {
+        const mixedData = typeof ventaData.payment_details === 'string' ? 
+          JSON.parse(ventaData.payment_details) : ventaData.payment_details;
+        
+        // Extract operation number for noperacion field
+        noperacionToStore = mixedData.operacion_electronica || '';
+        paymentDetailsToStore = JSON.stringify(mixedData);
+      } catch (e) {
+        throw new Error('Formato inválido para pago mixto');
+      }
+    } else if (ventaData.mediodepago !== '5') {
+      // For non-mixed payments, ensure payment_details is null
+      paymentDetailsToStore = null;
+    }
 
+    // 1. Create venta record 
+    const [ventaResult] = await connection.query(
+      `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [ventaData.dnivend, ventaData.dnicomp, ventaData.fecha, 
+       ventaData.mediodepago, noperacionToStore, paymentDetailsToStore]
+    );
+    
+    const id_venta = ventaResult.insertId;
     let totalVenta = 0;
 
     // 2. Process each product in the sale
@@ -106,10 +128,9 @@ createVenta: async (ventaData) => {
       // Create detalle_venta with price reference AND price value
       await connection.query(
         `INSERT INTO detalle_venta 
-         (id_venta, id_producto, cantidad, observacion, id_precio, precio)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [id_venta, producto.id_producto, producto.cantidad, 
-         producto.observacion || '', id_precio, precio]
+         (id_venta, id_producto, cantidad, id_precio, precio)
+         VALUES (?, ?, ?, ?, ?)`,
+        [id_venta, producto.id_producto, producto.cantidad, id_precio, precio]
       );
 
       // Update stock (reduce quantity)
@@ -155,19 +176,49 @@ getVentaDetails: async (id) => {
   }
 },
   // Process return
-// In ventaService.js - processReturn method
-processReturn: async (returnData) => {
-  const connection = await pool.getConnection();
-  try {
-    await connection.beginTransaction();
+  processReturn: async (returnData) => {
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+  
+      let noperacionToStore = returnData.noperacion || 'DEVOLUCION';
+      let paymentDetailsToStore = null;
+      
+      // For mixed payment returns
+      if (returnData.mediodepago === '5') {
+        try {
+          // Check if we have payment_details in the request
+          if (returnData.payment_details) {
+            const mixedData = typeof returnData.payment_details === 'string' ? 
+              JSON.parse(returnData.payment_details) : returnData.payment_details;
+            
+            paymentDetailsToStore = JSON.stringify(mixedData);
+            noperacionToStore = mixedData.operacion_electronica || 'DEVOLUCION';
+          } 
+          // Handle case where data might be in noperacion (backward compatibility)
+          else if (returnData.noperacion && returnData.noperacion !== 'DEVOLUCION') {
+            try {
+              const mixedData = JSON.parse(returnData.noperacion);
+              paymentDetailsToStore = returnData.noperacion;
+              noperacionToStore = mixedData.operacion_electronica || 'DEVOLUCION';
+            } catch (e) {
+              // If it's not JSON, use as is
+              paymentDetailsToStore = null;
+            }
+          }
+        } catch (e) {
+          console.error('Error processing mixed payment return:', e);
+          // If it's not valid JSON, leave as is
+        }
+      }
 
     // 1. Create venta_mod record
     const [ventaModResult] = await connection.query(
       `INSERT INTO venta_mod 
-       (id_venta, dnivend, fecha, mediodepago, noperacion)
-       VALUES (?, ?, ?, ?, ?)`,
+       (id_venta, dnivend, fecha, mediodepago, noperacion, payment_details, motivo)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [returnData.originalVentaId, returnData.dnivend, new Date(), 
-       returnData.mediodepago, returnData.noperacion || 'DEVOLUCION']
+       returnData.mediodepago, noperacionToStore, paymentDetailsToStore, returnData.motivo || 'Devolución']
     );
     const ventaModId = ventaModResult.insertId;
 
@@ -190,13 +241,12 @@ processReturn: async (returnData) => {
       const subtotal = precio * producto.cantidad;
       total -= subtotal; // Negative amount for returns
 
-      // Create detalle_venta_mod record with price
+          // Create detalle_venta_mod without motivo
       await connection.query(
         `INSERT INTO detalle_venta_mod 
-         (cantidad, id_producto, motivo, id_venta_mod, precio)
-         VALUES (?, ?, ?, ?, ?)`,
-        [producto.cantidad, producto.id_producto, 
-         returnData.motivo || 'Devolución', ventaModId, precio]
+         (cantidad, id_producto, id_venta_mod, precio)
+         VALUES (?, ?, ?, ?)`,
+        [producto.cantidad, producto.id_producto, ventaModId, precio]
       );
 
       // Return stock to inventory

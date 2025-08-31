@@ -30,6 +30,14 @@ module.exports = {
       await productoService.createProduct(productData);
       res.redirect('/productos');
     } catch (err) {
+      // Handle duplicate entry error
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.render('productos/new', {
+          error_msg: 'El código de barras ya existe. Por favor use otro.',
+          // Keep the form data to avoid re-typing
+          formData: req.body
+        });
+      }
       next(err);
     }
   },

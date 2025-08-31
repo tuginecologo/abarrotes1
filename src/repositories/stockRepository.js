@@ -11,6 +11,7 @@ module.exports = {
             p.nombre as producto_nombre, 
             p.descripcion, 
             p.variante,
+            p.marca,  -- Add marca field
             COALESCE(
               (SELECT SUM(cantidad) FROM recepcion WHERE id_producto = p.id_producto), 
               0
@@ -32,17 +33,17 @@ module.exports = {
             pr.precio as precio_publico
        FROM producto p
        LEFT JOIN precio pr ON p.id_producto = pr.id_producto
-       WHERE p.nombre LIKE ? OR p.descripcion LIKE ? OR p.variante LIKE ?
+       WHERE p.nombre LIKE ? OR p.descripcion LIKE ? OR p.variante LIKE ? OR p.marca LIKE ?
        ORDER BY p.nombre
        LIMIT ? OFFSET ?`,
-      [`%${search}%`, `%${search}%`, `%${search}%`, limit, offset]
+      [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, limit, offset]
     );
     
     const [count] = await pool.query(
         `SELECT COUNT(*) as total 
          FROM producto p
-         WHERE p.nombre LIKE ? OR p.descripcion LIKE ? OR p.variante LIKE ?`,
-        [`%${search}%`, `%${search}%`, `%${search}%`]
+         WHERE p.nombre LIKE ? OR p.descripcion LIKE ? OR p.variante LIKE ? OR p.marca LIKE ?`,
+        [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`]
     );
     
     return { 
@@ -94,7 +95,6 @@ module.exports = {
     return rows[0];
   },
 
-
   // Get all stock for Excel export
   getAllStock: async () => {
     const [rows] = await pool.query(
@@ -103,6 +103,7 @@ module.exports = {
             p.nombre as producto_nombre, 
             p.descripcion, 
             p.variante,
+            p.marca,  -- Add marca field
             COALESCE(
               (SELECT SUM(cantidad) FROM recepcion WHERE id_producto = p.id_producto), 
               0

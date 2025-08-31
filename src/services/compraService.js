@@ -57,50 +57,62 @@ module.exports = {
   //   }
   //   return await compraRepository.bulkDeleteCompras(ids);
   // },
+// Export to Excel
+exportToExcel: async () => {
+  const workbook = new excel.Workbook();
+  const worksheet = workbook.addWorksheet('Compras');
 
-  // Export to Excel
-  exportToExcel: async () => {
-    const workbook = new excel.Workbook();
-    const worksheet = workbook.addWorksheet('Compras');
+  const compras = await compraRepository.getAllCompras();
 
-    const compras = await compraRepository.getAllCompras();
+  worksheet.columns = [
+    { header: 'ID Compra', key: 'id_compra', width: 10 },
+    { header: 'ID Producto', key: 'id_producto', width: 10 },
+    { header: 'Fecha', key: 'fecha', width: 15 },
+    { header: 'Producto', key: 'producto_nombre', width: 30 },
+    { header: 'Variante', key: 'producto_variante', width: 20 },
+    { header: 'Marca', key: 'producto_marca', width: 20 },
+    { header: 'Descripción', key: 'producto_descripcion', width: 40 },
+    { header: 'Cantidad', key: 'cantidad', width: 15 },
+    { header: 'Precio Unitario', key: 'preciounitario', width: 20 },
+    { header: 'Total', key: 'total', width: 20 },
+    { header: 'Proveedor', key: 'proveedor_nombre', width: 30 },
+    { header: 'Empleado', key: 'empleado_nombre', width: 30 },
+    { header: 'Observación', key: 'observacion', width: 40 }
+  ];
 
-    worksheet.columns = [
-      { header: 'ID', key: 'id_compra', width: 10 },
-      { header: 'Fecha', key: 'fecha', width: 15 },
-      { header: 'Producto', key: 'producto_nombre', width: 30 },
-      { header: 'Cantidad', key: 'cantidad', width: 15 },
-      { header: 'Precio Unitario', key: 'preciounitario', width: 20 },
-      { header: 'Total', key: 'total', width: 20 },
-      { header: 'Proveedor', key: 'proveedor_nombre', width: 30 },
-      { header: 'Empleado', key: 'empleado_nombre', width: 30 },
-      { header: 'Observación', key: 'observacion', width: 40 }
-    ];
-
-    compras.forEach(compra => {
-      worksheet.addRow({
-        ...compra,
-        total: compra.cantidad * compra.preciounitario
-      });
+  compras.forEach(compra => {
+    worksheet.addRow({
+      ...compra,
+      total: compra.cantidad * compra.preciounitario
     });
+  });
 
-    // Format currency
-    worksheet.eachRow((row) => {
-      row.getCell('preciounitario').numFmt = '"S/"#,##0.00';
-      row.getCell('total').numFmt = '"S/"#,##0.00';
-    });
+  // Format currency
+  worksheet.eachRow((row) => {
+    row.getCell('preciounitario').numFmt = '"S/"#,##0.00';
+    row.getCell('total').numFmt = '"S/"#,##0.00';
+  });
 
-    const exportDir = path.join(__dirname, '../public/exports');
-    if (!fs.existsSync(exportDir)) {
-      fs.mkdirSync(exportDir, { recursive: true });
+  // Format date column
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber > 1) { // Skip header row
+      const fechaCell = row.getCell('fecha');
+      if (fechaCell.value) {
+        fechaCell.numFmt = 'dd/mm/yyyy';
+      }
     }
+  });
 
-    const exportPath = path.join(exportDir, 'compras.xlsx');
-    await workbook.xlsx.writeFile(exportPath);
+  const exportDir = path.join(__dirname, '../public/exports');
+  if (!fs.existsSync(exportDir)) {
+    fs.mkdirSync(exportDir, { recursive: true });
+  }
 
-    return exportPath;
-  },
+  const exportPath = path.join(exportDir, 'compras.xlsx');
+  await workbook.xlsx.writeFile(exportPath);
 
+  return exportPath;
+},
   // Get dropdown options
   getDropdownOptions: async () => {
     return await compraRepository.getDropdownOptions();

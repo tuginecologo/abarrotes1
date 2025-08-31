@@ -147,45 +147,49 @@ updateRecepcion: async (id, recepcionData) => {
   //   return await recepcionRepository.bulkDeleteRecepciones(ids);
   // },
 
-  // Export to Excel
-  exportToExcel: async () => {
-    const workbook = new excel.Workbook();
-    const worksheet = workbook.addWorksheet('Recepciones');
+// Export to Excel
+exportToExcel: async () => {
+  const workbook = new excel.Workbook();
+  const worksheet = workbook.addWorksheet('Recepciones');
 
-    const recepciones = await recepcionRepository.getAllRecepciones();
+  const recepciones = await recepcionRepository.getAllRecepciones();
 
-    worksheet.columns = [
-      { header: 'ID', key: 'id_recepcion', width: 10 },
-      { header: 'Fecha', key: 'fecha', width: 15 },
-      { header: 'Producto', key: 'producto_nombre', width: 30 },
-      { header: 'Cantidad', key: 'cantidad', width: 15 },
-      { header: 'Proveedor', key: 'proveedor_nombre', width: 30 },
-      { header: 'Empleado', key: 'empleado_nombre', width: 30 },
-      { header: 'Observación', key: 'observacion', width: 40 }
-    ];
+  worksheet.columns = [
+    { header: 'ID Recepción', key: 'id_recepcion', width: 10 },
+    { header: 'ID Producto', key: 'id_producto', width: 10 },
+    { header: 'Fecha', key: 'fecha', width: 15 },
+    { header: 'Producto', key: 'producto_nombre', width: 30 },
+    { header: 'Variante', key: 'producto_variante', width: 20 },
+    { header: 'Marca', key: 'producto_marca', width: 20 },
+    { header: 'Descripción', key: 'producto_descripcion', width: 40 },
+    { header: 'Cantidad', key: 'cantidad', width: 15 },
+    { header: 'Proveedor', key: 'proveedor_nombre', width: 30 },
+    { header: 'Empleado', key: 'empleado_nombre', width: 30 },
+    { header: 'Observación', key: 'observacion', width: 40 }
+  ];
 
-    recepciones.forEach(recepcion => {
-      worksheet.addRow(recepcion);
-    });
+  recepciones.forEach(recepcion => {
+    worksheet.addRow(recepcion);
+  });
 
-    // Format date
-    worksheet.eachRow((row) => {
-      const fechaCell = row.getCell('fecha');
-      if (fechaCell.value) {
-        fechaCell.numFmt = 'dd/mm/yyyy';
-      }
-    });
-
-    const exportDir = path.join(__dirname, '../public/exports');
-    if (!fs.existsSync(exportDir)) {
-      fs.mkdirSync(exportDir, { recursive: true });
+  // Format date
+  worksheet.eachRow((row) => {
+    const fechaCell = row.getCell('fecha');
+    if (fechaCell.value) {
+      fechaCell.numFmt = 'dd/mm/yyyy';
     }
+  });
 
-    const exportPath = path.join(exportDir, 'recepciones.xlsx');
-    await workbook.xlsx.writeFile(exportPath);
+  const exportDir = path.join(__dirname, '../public/exports');
+  if (!fs.existsSync(exportDir)) {
+    fs.mkdirSync(exportDir, { recursive: true });
+  }
 
-    return exportPath;
-  },
+  const exportPath = path.join(exportDir, 'recepciones.xlsx');
+  await workbook.xlsx.writeFile(exportPath);
+
+  return exportPath;
+},
 
   // Get dropdown options
   getDropdownOptions: async () => {

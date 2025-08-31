@@ -5,6 +5,7 @@
     case '2': return 'Yape';
     case '3': return 'Plin';
     case '4': return 'Transferencia';
+    case '5': return 'Pago Mixto'; // Add mixed payment
     default: return 'Desconocido';
   }
 } %>
@@ -51,11 +52,33 @@
         <span class="text-success">Modificación: S/ <%= mod.total.toFixed(2) %></span>
       <% } %>
       <small class="text-muted">
-        (<%= getMetodoPago(mod.mediodepago) %> 
-        <% if (mod.noperacion && mod.noperacion !== 'DEVOLUCION') { %>
-          - Op: <%= mod.noperacion %>
-        <% } %>)
-      </small>
+        <%= getMetodoPago(mod.mediodepago) %> 
+        <% if (mod.mediodepago === '5' && mod.noperacion) { %>
+          <% 
+          let mixedData = null;
+          try {
+            mixedData = mod.payment_details ? JSON.parse(mod.payment_details) : null;
+          } catch (e) {
+            console.error('Error parsing mixed payment data:', e);
+          }
+        %>
+        <% if (mixedData) { %>
+          <div class="alert alert-info mb-3">
+            <strong>Detalles de Pago Mixto:</strong><br>
+            - Efectivo: S/ <%= mixedData.efectivo.toFixed(2) %><br>
+            - <%= getMetodoPago(mixedData.metodo_electronico) %>: S/ <%= mixedData.electronico.toFixed(2) %><br>
+            <% if (mod.noperacion) { %>
+              - N° Operación: <%= mod.noperacion %>
+            <% } %>
+          </div>
+        <% } %>
+      <% } %>
+      <!-- Show return reason -->
+<% if (mod.motivo) { %>
+  <div class="alert alert-warning">
+    <strong>Motivo de devolución:</strong> <%= mod.motivo %>
+  </div>
+<% } %>
     </button>
           </h2>
         </div>
@@ -63,10 +86,36 @@
         <div id="collapse<%= index %>" class="collapse <%= index === 0 ? 'show' : '' %>" 
              aria-labelledby="heading<%= index %>" data-parent="#historyAccordion">
           <div class="card-body">
+            <!-- Payment Method Details -->
+            <% if (mod.mediodepago === '5' && mod.noperacion) { %>
+              <% 
+                let mixedData = null;
+                try {
+                  mixedData = mod.noperacion ? JSON.parse(mod.noperacion) : null;
+                } catch (e) {
+                  console.error('Error parsing mixed payment data:', e);
+                }
+              %>
+              <% if (mixedData) { %>
+                <div class="alert alert-info mb-3">
+                  <strong>Detalles de Pago Mixto:</strong><br>
+                  - Efectivo: S/ <%= mixedData.efectivo.toFixed(2) %><br>
+                  - <%= getMetodoPago(mixedData.metodo_electronico) %>: S/ <%= mixedData.electronico.toFixed(2) %><br>
+                  <% if (mixedData.operacion_electronica) { %>
+                    - N° Operación: <%= mixedData.operacion_electronica %>
+                  <% } %>
+                </div>
+              <% } %>
+            <% } %>
+
             <table class="table">
               <thead>
                 <tr>
+                  <th>ID</th>
                   <th>Producto</th>
+                  <th>Marca</th>
+                  <th>Variante</th>
+                  <th>Descripción</th>
                   <th>Precio Unitario</th>
                   <th>Cantidad</th>
                   <th>Subtotal</th>
@@ -78,7 +127,11 @@
               <tbody>
                 <% mod.detalles.forEach(detalle => { %>
                   <tr>
+                    <td><%= detalle.id_producto %></td>
                     <td><%= detalle.producto_nombre %></td>
+                    <td><%= detalle.marca || 'N/A' %></td>
+                    <td><%= detalle.variante || 'N/A' %></td>
+                    <td><%= detalle.descripcion || 'N/A' %></td>
                     <td>S/ <%= detalle.precio.toFixed(2) %></td>
                     <td><%= detalle.cantidad %></td>
                     <td>S/ <%= (detalle.precio * detalle.cantidad).toFixed(2) %></td>
@@ -90,7 +143,7 @@
               </tbody>
               <tfoot>
                 <tr>
-                  <th colspan="3">Total</th>
+                  <th colspan="7">Total</th>
                   <th>S/ <%= mod.total.toFixed(2) %></th>
                   <% if (mod.total < 0) { %>
                     <th></th>

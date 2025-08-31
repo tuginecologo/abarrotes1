@@ -22,10 +22,13 @@
   <thead>
     <tr>
       <!-- <th><input type="checkbox" id="select-all"></th> -->
-      <th>ID</th>
+      <th>ID Recepción</th>
+      <th>ID Producto</th>
       <th>Fecha</th>
-      <!-- <th>Compra Relacionada</th> -->
       <th>Producto</th>
+      <th>Variante</th>
+      <th>Marca</th>
+      <th>Descripción</th>
       <th>Cantidad</th>
       <th>Proveedor</th>
       <th>Empleado</th>
@@ -38,15 +41,12 @@
       <tr>
         <!-- <td><input type="checkbox" name="recepcionIds" value="<%= recepcion.id_recepcion %>" form="bulk-delete-form"></td> -->
         <td><%= recepcion.id_recepcion %></td>
+        <td><%= recepcion.id_producto %></td>
         <td><%= dateFormatter.format(recepcion.fecha) %></td>
-        <!-- <td>
-          <% if (recepcion.id_compra) { %>
-            <a href="/compras/<%= recepcion.id_compra %>">Compra #<%= recepcion.id_compra %></a>
-          <% } else { %>
-            N/A
-          <% } %>
-        </td> -->
         <td><%= recepcion.producto_nombre %></td>
+        <td><%= recepcion.producto_variante || '-' %></td>
+        <td><%= recepcion.producto_marca || '-' %></td>
+        <td><%= recepcion.producto_descripcion || '-' %></td>
         <td><%= recepcion.cantidad %></td>
         <td><%= recepcion.proveedor_nombre %></td>
         <td><%= recepcion.empleado_nombre %></td>
@@ -71,25 +71,5 @@
     <a href="/recepciones?page=<%= currentPage + 1 %>&q=<%= searchQuery %>" class="page-link">Siguiente</a>
   <% } %>
 </div>
-<!-- 
-<script>
-  function validateBulkDelete() {
-    const checkboxes = document.querySelectorAll('input[name="recepcionIds"]:checked');
-    if (checkboxes.length === 0) {
-      alert('Por favor seleccione al menos una recepción para eliminar');
-      return false;
-    }
-    return confirm('¿Está seguro que desea eliminar las recepciones seleccionadas?');
-  }
-
-  document.getElementById('select-all').addEventListener('change', function(e) {
-    const checkboxes = document.querySelectorAll('input[name="recepcionIds"]');
-    checkboxes.forEach(checkbox => {
-      checkbox.checked = e.target.checked;
-    });
-  });
-</script> -->
-
-
 
 <%- include('../partials/footer') %>

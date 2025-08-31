@@ -84,45 +84,43 @@ initializeStock: async () => {
     return await stockRepository.getStockByProducto(id_producto);
   },
 
-  exportToExcel: async () => {
-    // const excel = require('exceljs');
-    // const path = require('path');
-    // const fs = require('fs');
-    
-    const workbook = new excel.Workbook();
-    const worksheet = workbook.addWorksheet('Stock');
-  
-    const stock = await stockRepository.getAllStock();
-  
-    worksheet.columns = [
-      { header: 'ID Producto', key: 'id_producto', width: 15 },
-      { header: 'Producto', key: 'producto_nombre', width: 30 },
-      { header: 'Descripción', key: 'descripcion', width: 40 },
-      { header: 'Variante', key: 'variante', width: 20 },
-      { header: 'Cantidad', key: 'cantidad', width: 15 },
-      { header: 'Precio (S/)', key: 'precio_publico', width: 15 },
-    ];
-  
-    stock.forEach(item => {
-      worksheet.addRow(item);
-    });
+  // Export to Excel
+exportToExcel: async () => {
+  const workbook = new excel.Workbook();
+  const worksheet = workbook.addWorksheet('Stock');
 
-    // Format price column
-    worksheet.eachRow((row) => {
-      const precioCell = row.getCell('precio_publico');
-      if (precioCell.value) {
-        precioCell.numFmt = '"S/"#,##0.00';
-      }
-    });
-  
-    const exportDir = path.join(__dirname, '../public/exports');
-    if (!fs.existsSync(exportDir)) {
-      fs.mkdirSync(exportDir, { recursive: true });
+  const stock = await stockRepository.getAllStock();
+
+  worksheet.columns = [
+    { header: 'ID Producto', key: 'id_producto', width: 15 },
+    { header: 'Producto', key: 'producto_nombre', width: 30 },
+    { header: 'Marca', key: 'marca', width: 20 }, // Add marca column
+    { header: 'Descripción', key: 'descripcion', width: 40 },
+    { header: 'Variante', key: 'variante', width: 20 },
+    { header: 'Cantidad', key: 'cantidad', width: 15 },
+    { header: 'Precio (S/)', key: 'precio_publico', width: 15 },
+  ];
+
+  stock.forEach(item => {
+    worksheet.addRow(item);
+  });
+
+  // Format price column
+  worksheet.eachRow((row) => {
+    const precioCell = row.getCell('precio_publico');
+    if (precioCell.value) {
+      precioCell.numFmt = '"S/"#,##0.00';
     }
-  
-    const exportPath = path.join(exportDir, 'stock.xlsx');
-    await workbook.xlsx.writeFile(exportPath);
-  
-    return exportPath;
+  });
+
+  const exportDir = path.join(__dirname, '../public/exports');
+  if (!fs.existsSync(exportDir)) {
+    fs.mkdirSync(exportDir, { recursive: true });
   }
+
+  const exportPath = path.join(exportDir, 'stock.xlsx');
+  await workbook.xlsx.writeFile(exportPath);
+
+  return exportPath;
+}
 };

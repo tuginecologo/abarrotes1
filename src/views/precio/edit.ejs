@@ -9,18 +9,43 @@
 
 <form action="/precio/editar/<%= producto.id_precio %>" method="POST">
   <div class="form-group">
+    <label>ID Producto:
+      <input type="text" value="<%= producto.id_producto %>" readonly class="form-control">
+    </label>
+  </div>
+
+  <div class="form-group">
     <label>Producto:
-      <input type="text" value="<%= producto.nombre %>" readonly>
+      <input type="text" value="<%= producto.nombre %>" readonly class="form-control">
+    </label>
+  </div>
+
+  <div class="form-group">
+    <label>Marca:
+      <input type="text" value="<%= producto.marca || 'N/A' %>" readonly class="form-control">
+    </label>
+  </div>
+
+  <div class="form-group">
+    <label>Variante:
+      <input type="text" value="<%= producto.variante || 'N/A' %>" readonly class="form-control">
+    </label>
+  </div>
+
+  <div class="form-group">
+    <label>Descripción:
+      <textarea readonly class="form-control" rows="3"><%= producto.descripcion || 'N/A' %></textarea>
     </label>
   </div>
   
   <div class="form-group">
     <label>Nuevo Precio (S/):
-      <input type="number" name="precio" value="<%= producto.precio.toFixed(2) %>" min="0.01" step="0.01" required>
+      <input type="number" name="precio" value="<%= producto.precio.toFixed(2) %>" min="0.01" step="0.01" required class="form-control">
     </label>
   </div>
   
   <button type="submit" class="btn">Actualizar Precio</button>
+  <a href="/precio" class="btn btn-secondary">Cancelar</a>
 </form>
 
 <%- include('../partials/footer') %>

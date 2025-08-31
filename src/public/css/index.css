@@ -509,7 +509,73 @@ table td:nth-child(4) {
   border-radius: 0.375rem;
 }
 
+/* Add to your existing CSS */
+select {
+  max-width: 600px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
+option {
+  padding: 5px;
+  white-space: nowrap;
+}
+
+/* Barcode Scanner Styles for Stock Page */
+.highlighted-product {
+  background-color: #00FF00 !important;
+  border: 2px solid #32CD32 !important;
+  transition: background-color 0.3s ease !important;
+}
+
+.flash-highlight {
+  animation: flash 0.5s ease-in-out !important;
+}
+
+@keyframes flash {
+  0% { background-color: #00FF00 !important; }
+  50% { background-color: #FFFF00 !important; }
+  100% { background-color: #00FF00 !important; }
+}
+
+.barcode-scanner-container {
+  background-color: #222 !important;
+  padding: 15px !important;
+  border-radius: 5px !important;
+  border: 1px solid #00FF00 !important;
+  margin-bottom: 20px !important;
+}
+
+.barcode-scanner-container label {
+  color: #00FF00 !important;
+  font-weight: bold !important;
+}
+
+.barcode-form {
+  margin: 0 !important;
+}
+
+.barcode-input-group {
+  display: flex !important;
+  gap: 10px !important;
+}
+
+.barcode-input {
+  flex: 1 !important;
+}
+
+.barcode-button {
+  white-space: nowrap !important;
+}
+.required-field {
+  border-left: 4px solid #dc3545 !important;
+}
+
+.required-label::after {
+  content: " *";
+  color: #dc3545;
+}
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
     main {
