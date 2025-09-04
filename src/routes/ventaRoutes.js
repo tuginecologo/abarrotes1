@@ -10,6 +10,7 @@ router.get('/ventas/exportar',
     checkRole(['0', '1']), 
     asyncWrapper(ventaController.exportToExcel)
   );
+  router.get('/ventas/:id/historial/exportar', checkAuth, checkRole(['0', '1']), asyncWrapper (ventaController.exportHistoryToExcel));
 // Sales routes
 router.get('/ventas', checkAuth, checkRole(['0', '1', '2']), asyncWrapper (ventaController.listVentas));
 router.get('/ventas/nueva', checkAuth, checkRole(['0', '1', '2']), asyncWrapper(ventaController.showNewForm));

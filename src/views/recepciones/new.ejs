@@ -2,6 +2,25 @@
 
 <h1>Nueva Recepción</h1>
 
+<!-- Add flash messages display -->
+<% if (messages && messages.error) { %>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <%= messages.error %>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+<% } %>
+<% if (messages && messages.success) { %>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <%= messages.success %>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+<% } %>
+
+
 <form id="recepcionForm" action="/recepciones/nuevo" method="POST">
   <div class="card mb-4">
     <div class="card-body">
@@ -11,9 +30,13 @@
         <input type="text" class="form-control" id="barcode-scanner" 
                placeholder="Escaneé el código de barras o ingrese el ID del producto" 
                autocomplete="off">
-        <small class="form-text text-muted">
-          Use un escáner de código de barras o ingrese manualmente el ID del producto. Presione Enter después de escanear.
-        </small>
+               <div>  
+                <small class="form-text text-muted">
+                Use un escáner de código de barras o ingrese manualmente el ID del producto. Presione Enter después de escanear.
+                </small>
+              </div>
+            </div>
+            
       </div>
 
       <div class="form-group">
@@ -22,20 +45,21 @@
           <option value="">Seleccione una compra</option>
           <% options.compras.forEach(compra => { %>
             <option value="<%= compra.id_compra %>" 
-                    data-producto="<%= compra.producto_nombre %>"
-                    data-proveedor="<%= compra.proveedor_nombre %>"
-                    data-cantidad="<%= compra.cantidad_comprada %>"
-                    data-variante="<%= compra.producto_variante || '' %>"
-                    data-marca="<%= compra.producto_marca || '' %>"
-                    data-descripcion="<%= compra.producto_descripcion || '' %>"
-                    data-id-producto="<%= compra.id_producto %>">
-              <%= compra.id_compra %> - <%= compra.producto_nombre %> 
-              <% if (compra.producto_variante) { %>| Variante: <%= compra.producto_variante %><% } %>
-              <% if (compra.producto_marca) { %>| Marca: <%= compra.producto_marca %><% } %>
-              <% if (compra.producto_descripcion) { %>| Desc: <%= compra.producto_descripcion %><% } %>
-              - <%= compra.proveedor_nombre %> 
-              (Comprado: <%= compra.cantidad_comprada %>, Fecha: <%= new Date(compra.fecha_compra).toLocaleDateString() %>)
-            </option>
+              data-producto="<%= compra.producto_nombre %>"
+              data-proveedor="<%= compra.proveedor_nombre %>"
+              data-cantidad="<%= compra.cantidad_comprada %>"
+              data-variante="<%= compra.producto_variante || '' %>"
+              data-marca="<%= compra.producto_marca || '' %>"
+              data-descripcion="<%= compra.producto_descripcion || '' %>"
+              data-id-producto="<%= compra.id_producto %>"
+              data-fecha-compra="<%= new Date(compra.fecha_compra).toISOString().split('T')[0] %>">
+        <%= compra.id_compra %> - <%= compra.producto_nombre %> 
+        <% if (compra.producto_variante) { %>| Variante: <%= compra.producto_variante %><% } %>
+        <% if (compra.producto_marca) { %>| Marca: <%= compra.producto_marca %><% } %>
+        <% if (compra.producto_descripcion) { %>| Desc: <%= compra.producto_descripcion %><% } %>
+        - <%= compra.proveedor_nombre %> 
+        (Comprado: <%= compra.cantidad_comprada %>, Fecha: <%= new Date(compra.fecha_compra).toLocaleDateString() %>)
+      </option>
           <% }) %>
         </select>
       </div>
@@ -113,7 +137,7 @@
           <div class="form-group">
             <label for="fecha">Fecha de Recepción</label>
             <input type="date" class="form-control" id="fecha" name="fecha" 
-                   value="<%= new Date().toISOString().split('T')[0] %>" required>
+            value="<%= recepcion.fecha || new Date().toISOString().split('T')[0] %>" required>
           </div>
         </div>
       </div>
@@ -189,41 +213,54 @@ document.addEventListener('DOMContentLoaded', function() {
   compraSelect.addEventListener('change', function() {
     barcodeScanner.value = '';
   });
-
   compraSelect.addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
+  const selectedOption = this.options[this.selectedIndex];
+  
+  if (selectedOption.value) {
+    // Update basic info
+    productoDisplay.value = selectedOption.getAttribute('data-producto');
+    proveedorDisplay.value = selectedOption.getAttribute('data-proveedor');
     
-    if (selectedOption.value) {
-      // Update basic info
-      productoDisplay.value = selectedOption.getAttribute('data-producto');
-      proveedorDisplay.value = selectedOption.getAttribute('data-proveedor');
-      
-      // Update product details
-      idProductoDisplay.value = selectedOption.getAttribute('data-id-producto');
-      varianteDisplay.value = selectedOption.getAttribute('data-variante') || '-';
-      marcaDisplay.value = selectedOption.getAttribute('data-marca') || '-';
-      descripcionDisplay.value = selectedOption.getAttribute('data-descripcion') || '-';
-      
-      // Update max quantity
-      const maxCantidad = selectedOption.getAttribute('data-cantidad');
-      maxCantidadSpan.textContent = maxCantidad;
-      cantidadInput.setAttribute('max', maxCantidad);
-      
-      // Auto-fill quantity with max available
-      cantidadInput.value = maxCantidad;
-    } else {
-      // Clear all fields if no selection
-      productoDisplay.value = '';
-      proveedorDisplay.value = '';
-      idProductoDisplay.value = '';
-      varianteDisplay.value = '';
-      marcaDisplay.value = '';
-      descripcionDisplay.value = '';
-      maxCantidadSpan.textContent = '0';
-      cantidadInput.removeAttribute('max');
-      cantidadInput.value = '';
+    // Update product details
+    idProductoDisplay.value = selectedOption.getAttribute('data-id-producto');
+    varianteDisplay.value = selectedOption.getAttribute('data-variante') || '-';
+    marcaDisplay.value = selectedOption.getAttribute('data-marca') || '-';
+    descripcionDisplay.value = selectedOption.getAttribute('data-descripcion') || '-';
+    
+    // Update max quantity
+    const maxCantidad = selectedOption.getAttribute('data-cantidad');
+    maxCantidadSpan.textContent = maxCantidad;
+    cantidadInput.setAttribute('max', maxCantidad);
+    
+    // Get purchase date and set as minimum for reception date
+    const compraFecha = selectedOption.getAttribute('data-fecha-compra');
+    const fechaInput = document.getElementById('fecha');
+    fechaInput.min = compraFecha;
+    
+    // If current date is before purchase date, set to purchase date
+    if (fechaInput.value < compraFecha) {
+      fechaInput.value = compraFecha;
     }
-  });
+    
+    // Auto-fill quantity with max available
+    cantidadInput.value = maxCantidad;
+  } else {
+    // Clear all fields if no selection
+    productoDisplay.value = '';
+    proveedorDisplay.value = '';
+    idProductoDisplay.value = '';
+    varianteDisplay.value = '';
+    marcaDisplay.value = '';
+    descripcionDisplay.value = '';
+    maxCantidadSpan.textContent = '0';
+    cantidadInput.removeAttribute('max');
+    cantidadInput.value = '';
+    
+    // Reset date validation
+    const fechaInput = document.getElementById('fecha');
+    fechaInput.removeAttribute('min');
+  }
+});
 
   // Prevent form submission when pressing Enter in barcode field
   document.getElementById('recepcionForm').addEventListener('keydown', function(e) {
@@ -231,6 +268,117 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
     }
   });
+});
+// Add to your existing JavaScript in recepciones/new.ejs
+compraSelect.addEventListener('change', function() {
+  const selectedOption = this.options[this.selectedIndex];
+  
+  if (selectedOption.value) {
+    // Update basic info
+    productoDisplay.value = selectedOption.getAttribute('data-producto');
+    proveedorDisplay.value = selectedOption.getAttribute('data-proveedor');
+    
+    // Update product details
+    idProductoDisplay.value = selectedOption.getAttribute('data-id-producto');
+    varianteDisplay.value = selectedOption.getAttribute('data-variante') || '-';
+    marcaDisplay.value = selectedOption.getAttribute('data-marca') || '-';
+    descripcionDisplay.value = selectedOption.getAttribute('data-descripcion') || '-';
+    
+    // Update max quantity
+    const maxCantidad = selectedOption.getAttribute('data-cantidad');
+    maxCantidadSpan.textContent = maxCantidad;
+    cantidadInput.setAttribute('max', maxCantidad);
+    
+    // Get purchase date and set as minimum for reception date
+    const compraFecha = selectedOption.getAttribute('data-fecha-compra');
+    const fechaInput = document.getElementById('fecha');
+    fechaInput.min = compraFecha;
+    
+    // If current date is before purchase date, set to purchase date
+    if (fechaInput.value < compraFecha) {
+      fechaInput.value = compraFecha;
+    }
+    
+    // Auto-fill quantity with max available
+    cantidadInput.value = maxCantidad;
+  } else {
+    // Clear all fields if no selection
+    productoDisplay.value = '';
+    proveedorDisplay.value = '';
+    idProductoDisplay.value = '';
+    varianteDisplay.value = '';
+    marcaDisplay.value = '';
+    descripcionDisplay.value = '';
+    maxCantidadSpan.textContent = '0';
+    cantidadInput.removeAttribute('max');
+    cantidadInput.value = '';
+    
+    // Reset date validation
+    const fechaInput = document.getElementById('fecha');
+    fechaInput.removeAttribute('min');
+  }
+});
+// Add date validation to the form submission
+document.getElementById('recepcionForm').addEventListener('submit', function(e) {
+  const compraSelect = document.getElementById('id_compra');
+  const fechaInput = document.getElementById('fecha');
+  
+  if (compraSelect.value) {
+    const selectedOption = compraSelect.options[compraSelect.selectedIndex];
+    const compraFecha = selectedOption.getAttribute('data-fecha-compra');
+    const recepcionFecha = fechaInput.value;
+    
+    if (recepcionFecha < compraFecha) {
+      e.preventDefault();
+      alert('Error: La fecha de recepción no puede ser anterior a la fecha de compra.\n\n' +
+            `Fecha de compra: ${compraFecha}\n` +
+            `Fecha de recepción: ${recepcionFecha}`);
+      
+      // Highlight the date field
+      fechaInput.classList.add('is-invalid');
+      fechaInput.focus();
+    }
+  }
+});
+
+// Remove error styling when date changes
+document.getElementById('fecha').addEventListener('change', function() {
+  this.classList.remove('is-invalid');
+});
+
+// Add real-time date validation
+document.getElementById('fecha').addEventListener('input', function() {
+  const compraSelect = document.getElementById('id_compra');
+  
+  if (compraSelect.value) {
+    const selectedOption = compraSelect.options[compraSelect.selectedIndex];
+    const compraFecha = selectedOption.getAttribute('data-fecha-compra');
+    const recepcionFecha = this.value;
+    
+    if (recepcionFecha < compraFecha) {
+      this.classList.add('is-invalid');
+      
+      // Show a helpful message
+      const helpText = document.createElement('small');
+      helpText.id = 'date-error-help';
+      helpText.className = 'form-text text-danger';
+      helpText.textContent = `La fecha de recepción no puede ser anterior a la fecha de compra (${compraFecha})`;
+      
+      // Remove existing help text if any
+      const existingHelp = document.getElementById('date-error-help');
+      if (existingHelp) {
+        existingHelp.remove();
+      }
+      
+      this.parentNode.appendChild(helpText);
+    } else {
+      this.classList.remove('is-invalid');
+      const existingHelp = document.getElementById('date-error-help');
+      if (existingHelp) {
+        existingHelp.remove();
+      }
+    }
+  }
 });
 </script>
 

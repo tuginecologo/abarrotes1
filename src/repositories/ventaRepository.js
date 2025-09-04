@@ -124,70 +124,96 @@ getProductosEnStock: async () => {
     );
   },
 
-// In ventaRepository.js - update getVentaDetails
-// In ventaRepository.js - update getVentaDetails
-// In ventaRepository.js - update getVentaDetails
-getVentaDetails: async (id) => {
-  // First validate the ID
-  if (!id || isNaN(id)) {
-    throw new Error('ID de venta inválido');
-  }
-
-  try {
-    const [venta] = await pool.query(
-      `SELECT v.*, 
-       CONCAT(e.nombres, ' ', e.apellidos) as vendedor,
-       CONCAT(c.nombres, ' ', c.apellidos) as cliente,
-       m.total,
-       (m.total + IFNULL((
-         SELECT SUM(mvm.total)
-         FROM venta_mod vm
-         JOIN monto_venta_mod mvm ON vm.id_venta_mod = mvm.id_venta_mod
-         WHERE vm.id_venta = v.id_venta
-       ), 0)) as net_total,
-       v.mediodepago,
-       v.noperacion,
-       v.payment_details
-       FROM venta v
-       JOIN empleado e ON v.dnivend = e.dni
-       JOIN cliente c ON v.dnicomp = c.dni
-       JOIN monto_venta m ON v.id_venta = m.id_venta
-       WHERE v.id_venta = ?`,
-      [id]
-    );
-
-    if (!venta || venta.length === 0) {
-      throw new Error(`Venta con ID ${id} no encontrada`);
+  getVentaDetails: async (id) => {
+    // First validate the ID
+    if (!id || isNaN(id)) {
+      throw new Error('ID de venta inválido');
     }
-
-    const ventaData = venta[0];
-
-    // UPDATE THIS QUERY to include marca, variante, descripcion
-    const [detalles] = await pool.query(
-      `SELECT 
-         dv.*, 
-         p.id_producto,
-         p.nombre as producto_nombre,
-         p.marca,
-         p.variante,
-         p.descripcion,
-         dv.precio as precio
-       FROM detalle_venta dv
-       JOIN producto p ON dv.id_producto = p.id_producto
-       WHERE dv.id_venta = ?`,
-      [id]
-    );
-
-    return {
-      ...ventaData,
-      detalles,
-      metodoPago: ventaData.mediodepago ? getMetodoPago(ventaData.mediodepago) : 'No especificado'
-    };
-  } catch (error) {
-    console.error('Error en getVentaDetails:', error);
-    throw error;
-  }
-},
+  
+    let connection;
+    try {
+      connection = await pool.getConnection();
+      
+      const [venta] = await connection.query(
+        `SELECT v.*, 
+         CONCAT(e.nombres, ' ', e.apellidos) as vendedor,
+         CONCAT(c.nombres, ' ', c.apellidos) as cliente,
+         m.total,
+         (m.total + IFNULL((
+           SELECT SUM(mvm.total)
+           FROM venta_mod vm
+           JOIN monto_venta_mod mvm ON vm.id_venta_mod = mvm.id_venta_mod
+           WHERE vm.id_venta = v.id_venta
+         ), 0)) as net_total,
+         v.mediodepago,
+         v.noperacion,
+         v.payment_details
+         FROM venta v
+         JOIN empleado e ON v.dnivend = e.dni
+         JOIN cliente c ON v.dnicomp = c.dni
+         JOIN monto_venta m ON v.id_venta = m.id_venta
+         WHERE v.id_venta = ?`,
+        [id]
+      );
+  
+      if (!venta || venta.length === 0) {
+        throw new Error(`Venta con ID ${id} no encontrada`);
+      }
+  
+      const ventaData = venta[0];
+  
+      // UPDATE THIS QUERY to include marca, variante, descripcion
+      const [detalles] = await connection.query(
+        `SELECT 
+           dv.*, 
+           p.id_producto,
+           p.nombre as producto_nombre,
+           p.marca,
+           p.variante,
+           p.descripcion,
+           dv.precio as precio
+         FROM detalle_venta dv
+         JOIN producto p ON dv.id_producto = p.id_producto
+         WHERE dv.id_venta = ?`,
+        [id]
+      );
+  
+      // Get already returned quantities
+      const [returnedQuantities] = await connection.query(
+        `SELECT id_producto, SUM(cantidad) as total_returned
+         FROM detalle_venta_mod dvm
+         JOIN venta_mod vm ON dvm.id_venta_mod = vm.id_venta_mod
+         WHERE vm.id_venta = ?
+         GROUP BY id_producto`,
+        [id]
+      );
+      
+      const returnedQuantitiesMap = {};
+      returnedQuantities.forEach(item => {
+        returnedQuantitiesMap[item.id_producto] = item.total_returned;
+      });
+      
+      // Add maxReturnable to each product detail
+      detalles.forEach(detalle => {
+        const alreadyReturned = returnedQuantitiesMap[detalle.id_producto] || 0;
+        detalle.alreadyReturned = alreadyReturned;
+        detalle.maxReturnable = detalle.cantidad - alreadyReturned;
+      });
+  
+      return {
+        ...ventaData,
+        detalles,
+        metodoPago: ventaData.mediodepago ? getMetodoPago(ventaData.mediodepago) : 'No especificado'
+      };
+    } catch (error) {
+      console.error('Error en getVentaDetails:', error);
+      throw error;
+    } finally {
+      if (connection) {
+        connection.release();
+      }
+    }
+  },
   // Create venta_mod record
   createVentaMod: async (ventaModData) => {
     const [result] = await pool.query(
@@ -271,32 +297,56 @@ getVentaHistory: async (ventaId) => {
 },
 // Add this to ventaRepository.js exports
 getAllVentas: async () => {
-  const [ventas] = await pool.query(
-    `SELECT 
-       v.*, 
-       CONCAT(e.nombres, ' ', e.apellidos) as vendedor,
-       CONCAT(c.nombres, ' ', c.apellidos) as cliente,
-       m.total as original_total,
-       IFNULL((
-         SELECT SUM(mvm.total) 
-         FROM venta_mod vm
-         JOIN monto_venta_mod mvm ON vm.id_venta_mod = mvm.id_venta_mod
-         WHERE vm.id_venta = v.id_venta
-       ), 0) as returns_amount,
-       (m.total + IFNULL((
-         SELECT SUM(mvm.total) 
-         FROM venta_mod vm
-         JOIN monto_venta_mod mvm ON vm.id_venta_mod = mvm.id_venta_mod
-         WHERE vm.id_venta = v.id_venta
-       ), 0)) as net_total,
-       (SELECT SUM(cantidad) FROM detalle_venta WHERE id_venta = v.id_venta) as items_count
-     FROM venta v
-     JOIN empleado e ON v.dnivend = e.dni
-     JOIN cliente c ON v.dnicomp = c.dni
-     JOIN monto_venta m ON v.id_venta = m.id_venta
-     ORDER BY v.id_venta DESC`
+  try {
+    const [ventas] = await pool.query(
+      `SELECT 
+         v.*, 
+         CONCAT(e.nombres, ' ', e.apellidos) as vendedor,
+         CONCAT(c.nombres, ' ', c.apellidos) as cliente,
+         m.total as original_total,
+         IFNULL((
+           SELECT SUM(mvm.total) 
+           FROM venta_mod vm
+           JOIN monto_venta_mod mvm ON vm.id_venta_mod = mvm.id_venta_mod
+           WHERE vm.id_venta = v.id_venta
+         ), 0) as returns_amount,
+         (m.total + IFNULL((
+           SELECT SUM(mvm.total) 
+           FROM venta_mod vm
+           JOIN monto_venta_mod mvm ON vm.id_venta_mod = mvm.id_venta_mod
+           WHERE vm.id_venta = v.id_venta
+         ), 0)) as net_total,
+         (SELECT SUM(cantidad) FROM detalle_venta WHERE id_venta = v.id_venta) as items_count,
+         v.mediodepago
+       FROM venta v
+       JOIN empleado e ON v.dnivend = e.dni
+       JOIN cliente c ON v.dnicomp = c.dni
+       JOIN monto_venta m ON v.id_venta = m.id_venta
+       ORDER BY v.id_venta DESC`
+    );
+    return ventas;
+  } catch (error) {
+    console.error('Error in getAllVentas:', error);
+    throw error;
+  }
+},
+// Add this method to ventaRepository.js
+getReturnedQuantitiesByVenta: async (ventaId) => {
+  const [rows] = await pool.query(
+    `SELECT id_producto, SUM(cantidad) as total_returned
+     FROM detalle_venta_mod dvm
+     JOIN venta_mod vm ON dvm.id_venta_mod = vm.id_venta_mod
+     WHERE vm.id_venta = ?
+     GROUP BY id_producto`,
+    [ventaId]
   );
-  return ventas;
+  
+  const returnedQuantities = {};
+  rows.forEach(row => {
+    returnedQuantities[row.id_producto] = row.total_returned;
+  });
+  
+  return returnedQuantities;
 },
 }
 

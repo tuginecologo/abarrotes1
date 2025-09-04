@@ -67,6 +67,14 @@ getRecepciones: async (page = 1, limit = 10, search = '') => {
     );
     return result.insertId;
   },
+  // In recepcionRepository.js - add this method
+getCompraFecha: async (id_compra) => {
+  const [rows] = await pool.query(
+    'SELECT fecha FROM compra WHERE id_compra = ?',
+    [id_compra]
+  );
+  return rows[0] ? rows[0].fecha : null;
+},
   
   // Update reception
   updateRecepcion: async (id, cantidad, id_producto, id_proveedor, dni, fecha, observacion) => {
@@ -106,7 +114,7 @@ getAllRecepciones: async () => {
   return rows;
 },
 
-// Get dropdown options
+// In recepcionRepository.js - update the getDropdownOptions query
 getDropdownOptions: async () => {
   const [compras] = await pool.query(`
     SELECT c.id_compra, p.id_producto, p.nombre as producto_nombre, 

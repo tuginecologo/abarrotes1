@@ -34,6 +34,13 @@
 
 <h3>Modificaciones</h3>
 
+<!-- Add Export Button -->
+<div class="mb-3">
+  <a href="/ventas/<%= venta.id_venta %>/historial/exportar" class="btn btn-success">
+    <i class="fas fa-file-excel"></i> Exportar a Excel
+  </a>
+</div>
+
 <% if (history.length === 0) { %>
   <div class="alert alert-info">No hay modificaciones registradas para esta venta.</div>
 <% } else { %>
@@ -120,7 +127,7 @@
                   <th>Cantidad</th>
                   <th>Subtotal</th>
                   <% if (mod.total < 0) { %>
-                    <th>Motivo</th>
+                    <th>Motivo</th> <!-- Add motivo column header -->
                   <% } %>
                 </tr>
               </thead>
@@ -136,7 +143,7 @@
                     <td><%= detalle.cantidad %></td>
                     <td>S/ <%= (detalle.precio * detalle.cantidad).toFixed(2) %></td>
                     <% if (mod.total < 0) { %>
-                      <td><%= detalle.motivo %></td>
+                      <td><%= mod.motivo %></td> <!-- Use mod.motivo instead of detalle.motivo -->
                     <% } %>
                   </tr>
                 <% }) %>

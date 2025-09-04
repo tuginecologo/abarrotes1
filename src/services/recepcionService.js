@@ -23,60 +23,68 @@ module.exports = {
     return recepcion;
   },
 
-  // Create new recepcion
-  createRecepcion: async (recepcionData) => {
-    const connection = await pool.getConnection();
-    try {
-      console.log('Starting transaction for recepcion creation');
-      await connection.beginTransaction();
-  
-      // 1. Get compra details
-      console.log('Getting compra with ID:', recepcionData.id_compra);
-      const compra = await compraRepository.getCompraById(recepcionData.id_compra, { connection });
-      if (!compra) throw new Error('Compra no encontrada');
-      
-      console.log('Compra found:', compra);
-      
-      // 2. Validate quantity
-      console.log('Validating quantity:', recepcionData.cantidad, 'against compra quantity:', compra.cantidad);
-      if (recepcionData.cantidad > compra.cantidad) {
-        throw new Error('La cantidad recibida excede la cantidad comprada');
-      }
-  
-      // 3. Create recepcion record
-      console.log('Creating recepcion record');
-      await recepcionRepository.createRecepcion(
-        recepcionData.cantidad,
-        compra.id_producto,
-        compra.id_proveedor,
-        recepcionData.dni,
-        recepcionData.fecha,
-        recepcionData.observacion,
-        recepcionData.id_compra,
-        { connection }
-      );
-  
-      // 4. Update stock
-      console.log('Updating stock for product:', compra.id_producto, 'with quantity:', recepcionData.cantidad);
-      await stockService.updateStock(
-        compra.id_producto,
-        recepcionData.cantidad,
-        'add',
-        { connection }
-      );
-  
-      await connection.commit();
-      console.log('Transaction committed successfully');
-    } catch (err) {
-      console.error('Error in createRecepcion:', err);
-      await connection.rollback();
-      throw err;
-    } finally {
-      connection.release();
+// Create new recepcion
+createRecepcion: async (recepcionData) => {
+  const connection = await pool.getConnection();
+  try {
+    console.log('Starting transaction for recepcion creation');
+    await connection.beginTransaction();
+
+    // 1. Get compra details
+    console.log('Getting compra with ID:', recepcionData.id_compra);
+    const compra = await compraRepository.getCompraById(recepcionData.id_compra, { connection });
+    if (!compra) throw new Error('Compra no encontrada');
+    
+    console.log('Compra found:', compra);
+    
+    // 2. Validate quantity
+    console.log('Validating quantity:', recepcionData.cantidad, 'against compra quantity:', compra.cantidad);
+    if (recepcionData.cantidad > compra.cantidad) {
+      throw new Error('La cantidad recibida excede la cantidad comprada');
     }
-  },
-  // Update recepcion
-// In recepcionService.updateRecepcion
+
+    // 3. Validate date - reception date must be same day or after purchase date
+    console.log('Validating date:', recepcionData.fecha, 'against purchase date:', compra.fecha);
+    const recepcionDate = new Date(recepcionData.fecha);
+    const compraDate = new Date(compra.fecha);
+    
+    if (recepcionDate < compraDate) {
+      throw new Error('La fecha de recepción no puede ser anterior a la fecha de compra');
+    }
+
+    // 4. Create recepcion record
+    console.log('Creating recepcion record');
+    await recepcionRepository.createRecepcion(
+      recepcionData.cantidad,
+      compra.id_producto,
+      compra.id_proveedor,
+      recepcionData.dni,
+      recepcionData.fecha,
+      recepcionData.observacion,
+      recepcionData.id_compra,
+      { connection }
+    );
+
+    // 5. Update stock
+    console.log('Updating stock for product:', compra.id_producto, 'with quantity:', recepcionData.cantidad);
+    await stockService.updateStock(
+      compra.id_producto,
+      recepcionData.cantidad,
+      'add',
+      { connection }
+    );
+
+    await connection.commit();
+    console.log('Transaction committed successfully');
+  } catch (err) {
+    console.error('Error in createRecepcion:', err);
+    await connection.rollback();
+    throw err;
+  } finally {
+    connection.release();
+  }
+},
+// Update recepcion
 updateRecepcion: async (id, recepcionData) => {
   const connection = await pool.getConnection();
   try {
@@ -85,6 +93,17 @@ updateRecepcion: async (id, recepcionData) => {
     const originalRecepcion = await recepcionRepository.getRecepcionById(id, { connection });
     if (!originalRecepcion) {
       throw new Error('Recepción no encontrada');
+    }
+    
+    // If reception is linked to a purchase, validate date
+    if (originalRecepcion.id_compra) {
+      const compra = await compraRepository.getCompraById(originalRecepcion.id_compra, { connection });
+      const recepcionDate = new Date(recepcionData.fecha);
+      const compraDate = new Date(compra.fecha);
+      
+      if (recepcionDate < compraDate) {
+        throw new Error('La fecha de recepción no puede ser anterior a la fecha de compra');
+      }
     }
     
     const quantityDifference = recepcionData.cantidad - originalRecepcion.cantidad;

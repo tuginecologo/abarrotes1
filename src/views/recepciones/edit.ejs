@@ -5,30 +5,71 @@
     <% return; %>
 <% } %>
 
+<!-- Add flash messages display -->
+<% if (messages && messages.error) { %>
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <%= messages.error %>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+<% } %>
+<% if (messages && messages.success) { %>
+  <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <%= messages.success %>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+<% } %>
+
 <h1>Editar Recepción</h1>
 
-<form action="/recepciones/editar/<%= recepcion.id_recepcion %>" method="POST">
-    <div class="form-group">
+<!-- Add hidden field for purchase date if it exists -->
+<% if (compraFecha) { %>
+  <input type="hidden" id="compra-fecha" value="<%= compraFecha %>">
+<% } %>
+
+<form id="editForm" action="/recepciones/editar/<%= recepcion.id_recepcion %>" method="POST">
+    <!-- Display supplier and product as read-only if linked to a purchase -->
+    <% if (recepcion.id_compra) { %>
+      <div class="form-group">
         <label>Proveedor:
-            <select name="id_proveedor" id="proveedor-select" required 
-                    onchange="loadProductos(this.value)">
-              <option value="">Seleccione un proveedor</option>
+          <input type="text" class="form-control" value="<%= recepcion.proveedor_nombre %>" readonly>
+          <input type="hidden" name="id_proveedor" value="<%= recepcion.id_proveedor %>">
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Producto:
+          <input type="text" class="form-control" value="<%= recepcion.producto_nombre %>" readonly>
+          <input type="hidden" name="id_producto" value="<%= recepcion.id_producto %>">
+        </label>
+      </div>
+    <% } else { %>
+      <!-- Allow editing supplier and product if not linked to a purchase -->
+      <div class="form-group">
+        <label>Proveedor:
+          <select name="id_proveedor" id="proveedor-select" required 
+                  onchange="loadProductos(this.value)">
+            <option value="">Seleccione un proveedor</option>
             <% options.proveedores.forEach(proveedor => { %>
               <option value="<%= proveedor.id_proveedor %>" 
                       <%= proveedor.id_proveedor == recepcion.id_proveedor ? 'selected' : '' %>>
                 <%= proveedor.nombre %>
               </option>
-          <% }) %>
-        </select>
-      </label>
-    </div>
-    <div class="form-group">
+            <% }) %>
+          </select>
+        </label>
+      </div>
+      <div class="form-group">
         <label>Producto:
           <select name="id_producto" id="producto-select" required style="width: 100%; max-width: 600px;">
             <option value="">Cargando productos...</option>
           </select>
         </label>
       </div>
+    <% } %>
+    
     <div class="form-group">
       <label>Empleado:
         <select name="dni" required>
@@ -47,7 +88,12 @@
     </div>
     <div class="form-group">
       <label>Fecha:
-        <input type="date" name="fecha" value="<%= new Date(recepcion.fecha).toISOString().split('T')[0] %>" required>
+        <input type="date" name="fecha" id="fecha-input" value="<%= new Date(recepcion.fecha).toISOString().split('T')[0] %>" required>
+        <% if (compraFecha) { %>
+          <small class="form-text text-muted">
+            La fecha de recepción no puede ser anterior a la fecha de compra: <%= compraFecha %>
+          </small>
+        <% } %>
       </label>
     </div>
     <div class="form-group">
@@ -62,7 +108,43 @@
     // Store the current product ID in a JavaScript variable
     const currentProductId = '<%= recepcion.id_producto %>';
     const currentProveedorId = '<%= recepcion.id_proveedor %>';
+    const compraFecha = document.getElementById('compra-fecha') ? document.getElementById('compra-fecha').value : null;
+    const fechaInput = document.getElementById('fecha-input');
 
+    // Set min date if there's a purchase date
+    if (compraFecha) {
+      fechaInput.min = compraFecha;
+      
+      // Add validation for date input
+      fechaInput.addEventListener('input', function() {
+        if (this.value < compraFecha) {
+          this.setCustomValidity('La fecha de recepción no puede ser anterior a la fecha de compra');
+        } else {
+          this.setCustomValidity('');
+        }
+      });
+    }
+
+    // Form submission validation
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+      if (compraFecha && fechaInput.value < compraFecha) {
+        e.preventDefault();
+        alert('Error: La fecha de recepción no puede ser anterior a la fecha de compra.\n\n' +
+              `Fecha de compra: ${compraFecha}\n` +
+              `Fecha de recepción: ${fechaInput.value}`);
+        
+        // Highlight the date field
+        fechaInput.classList.add('is-invalid');
+        fechaInput.focus();
+      }
+    });
+
+    // Remove error styling when date changes
+    fechaInput.addEventListener('change', function() {
+      this.classList.remove('is-invalid');
+    });
+
+    // Function to load products by supplier
     async function loadProductos(id_proveedor) {
       const productoSelect = document.getElementById('producto-select');
       
@@ -81,11 +163,8 @@
         
         let options = '<option value="">Seleccione un producto</option>';
         productos.forEach(producto => {
-          const selected = (id_proveedor == currentProveedorId && producto.id_producto == currentProductId) ? 'selected' : '';
-          options += `<option value="${producto.id_producto}" ${selected}
-                      data-variante="${producto.variante || ''}"
-                      data-marca="${producto.marca || ''}"
-                      data-descripcion="${producto.descripcion || ''}">
+          const selected = producto.id_producto == currentProductId ? 'selected' : '';
+          options += `<option value="${producto.id_producto}" ${selected}>
             ${producto.id_producto} - ${producto.nombre} 
             ${producto.variante ? '| Variante: ' + producto.variante : ''}
             ${producto.marca ? '| Marca: ' + producto.marca : ''}
@@ -100,6 +179,7 @@
         productoSelect.innerHTML = '<option value="">Error cargando productos</option>';
       }
     }
+  
   
     // Load products when page loads if supplier is already selected
     document.addEventListener('DOMContentLoaded', () => {

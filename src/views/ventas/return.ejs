@@ -63,8 +63,13 @@
             <td><%= detalle.cantidad %></td>
             <td>
               <input type="number" class="form-control cantidad-input" 
-                     min="0" max="<%= detalle.cantidad %>" 
-                     value="0" data-precio="<%= detalle.precio %>">
+                     min="0" max="<%= detalle.maxReturnable %>" 
+                     value="0" data-precio="<%= detalle.precio %>"
+                     data-max="<%= detalle.maxReturnable %>">
+              <small class="text-muted">
+                Ya devueltos: <%= detalle.alreadyReturned %> / 
+                Máximo: <%= detalle.maxReturnable %>
+              </small>
             </td>
             <td class="subtotal">S/ 0.00</td>
           </tr>
@@ -340,5 +345,18 @@ document.getElementById('noperacion').value = electronicOperationValue;
     // Initial calculation
     calculateTotals();
   });
+// Add to your existing JavaScript in return.ejs
+document.querySelectorAll('.cantidad-input').forEach(input => {
+  input.addEventListener('change', function() {
+    const max = parseInt(this.getAttribute('data-max'));
+    const value = parseInt(this.value);
+    
+    if (value > max) {
+      alert(`No puede devolver más de ${max} unidades de este producto.`);
+      this.value = max;
+      calculateTotals();
+    }
+  });
+});
   </script>
 <%- include('../partials/footer') %>
