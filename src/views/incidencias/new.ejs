@@ -1,0 +1,263 @@
+<%- include('../partials/header') %>
+
+<h1>Nueva Incidencia</h1>
+
+<form id="incidenciaForm" action="/incidencias/nueva" method="POST">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="fecha">Fecha</label>
+        <input type="date" class="form-control" id="fecha" name="fecha" 
+               value="<%= incidencia.fecha %>" required>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group">
+        <label for="tipo">Tipo de Incidencia</label>
+        <select class="form-control" id="tipo" name="tipo" required>
+          <option value="">Seleccionar tipo</option>
+          <option value="daño" <%= incidencia.tipo === 'daño' ? 'selected' : '' %>>Daño</option>
+          <option value="pérdida" <%= incidencia.tipo === 'pérdida' ? 'selected' : '' %>>Pérdida</option>
+          <option value="otros" <%= incidencia.tipo === 'otros' ? 'selected' : '' %>>Otros</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="descripcion">Descripción</label>
+    <textarea class="form-control" id="descripcion" name="descripcion" rows="3"><%= incidencia.descripcion %></textarea>
+  </div>
+
+  <div class="form-group">
+    <label for="dnivend">Empleado *</label>
+    <select class="form-control" id="dnivend" name="dnivend" required>
+      <option value="">Seleccionar empleado</option>
+      <% empleados.forEach(empleado => { %>
+        <option value="<%= empleado.dni %>" <%= incidencia.dnivend === empleado.dni ? 'selected' : '' %>>
+          <%= empleado.nombre %>
+        </option>
+      <% }) %>
+    </select>
+    <small class="form-text text-muted">Seleccione el empleado responsable de reportar la incidencia</small>
+  </div>
+
+  <h3>Productos Afectados</h3>
+
+  <div class="form-group">
+    <label for="barcode-scanner">Escáner de Código de Barras (ID Producto):</label>
+    <input type="text" class="form-control" id="barcode-scanner" 
+           placeholder="Escaneé el código de barras o ingrese el ID del producto" 
+           autocomplete="off" style="max-width: 600px;">
+    <div>  
+      <small class="form-text text-muted">
+      Use un escáner de código de barras o ingrese manualmente el ID del producto. Presione Enter después de escanear.
+      </small>
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <select class="form-control" id="productoSelect" style="width: 100%; max-width: 600px;">
+        <option value="">Seleccionar producto</option>
+        <% productos.forEach(producto => { %>
+          <% if (producto.cantidad > 0) { %>
+            <option value="<%= producto.id_producto %>" 
+                    data-stock="<%= producto.cantidad %>"
+                    data-nombre="<%= producto.producto_nombre %>"
+                    data-variante="<%= producto.variante || '' %>"
+                    data-marca="<%= producto.marca || '' %>"
+                    data-descripcion="<%= producto.descripcion || '' %>">
+              <%= producto.id_producto %> - <%= producto.producto_nombre %> 
+              <% if (producto.variante) { %>| Variante: <%= producto.variante %><% } %>
+              <% if (producto.marca) { %>| Marca: <%= producto.marca %><% } %>
+              (Stock: <%= producto.cantidad %>)
+            </option>
+          <% } %>
+        <% }) %>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control" id="productoCantidad" min="1" value="1" placeholder="Cantidad">
+    </div>
+    <div class="col-md-4">
+      <button type="button" class="btn btn-primary" id="agregarProducto">
+        <i class="fas fa-plus"></i> Agregar
+      </button>
+    </div>
+  </div>
+
+  <table class="table" id="productosTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Producto</th>
+        <th>Marca</th>
+        <th>Variante</th>
+        <th>Cantidad</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <input type="hidden" name="productos" id="productosInput">
+
+  <button type="submit" class="btn btn-success">
+    <i class="fas fa-save"></i> Registrar Incidencia
+  </button>
+  <a href="/incidencias" class="btn btn-secondary">Cancelar</a>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const barcodeScanner = document.getElementById('barcode-scanner');
+  const productoSelect = document.getElementById('productoSelect');
+  const cantidadInput = document.getElementById('productoCantidad');
+  
+  // Auto-focus on barcode scanner field
+  barcodeScanner.focus();
+  
+  // Barcode scanner functionality
+  barcodeScanner.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const productId = this.value.trim();
+      
+      if (productId) {
+        // Search for product in dropdown
+        const options = productoSelect.options;
+        let found = false;
+        
+        for (let i = 0; i < options.length; i++) {
+          const option = options[i];
+          const optionProductId = option.value;
+          
+          if (optionProductId === productId) {
+            productoSelect.value = option.value;
+            found = true;
+            
+            // Automatically add the product with default quantity (1)
+            agregarProductoAlCarrito();
+            
+            break;
+          }
+        }
+
+        if (!found) {
+          alert('No se encontró el producto con ID: ' + productId);
+        }
+        
+        // Clear the field and focus again for next scan
+        this.value = '';
+        this.focus();
+      }
+    }
+  });
+
+  // Function to add product to cart
+  function agregarProductoAlCarrito() {
+    if (!productoSelect.value) {
+      alert('Seleccione un producto');
+      return;
+    }
+
+    const selectedOption = productoSelect.options[productoSelect.selectedIndex];
+    const idProducto = productoSelect.value;
+    const nombreProducto = selectedOption.dataset.nombre;
+    const marca = selectedOption.dataset.marca || 'N/A';
+    const variante = selectedOption.dataset.variante || 'N/A';
+    const cantidad = parseInt(cantidadInput.value);
+    const stock = parseInt(selectedOption.dataset.stock);
+
+    if (cantidad <= 0) {
+      alert('La cantidad debe ser mayor a 0');
+      return;
+    }
+
+    if (cantidad > stock) {
+      alert(`No hay suficiente stock. Disponible: ${stock}`);
+      return;
+    }
+
+    // Verificar si el producto ya está en la tabla
+    const existingRow = document.querySelector(`#productosTable tr[data-id="${idProducto}"]`);
+    if (existingRow) {
+      const existingCantidad = parseInt(existingRow.querySelector('.cantidad').textContent);
+      const newCantidad = existingCantidad + cantidad;
+      
+      if (newCantidad > stock) {
+        alert(`No hay suficiente stock para esta cantidad adicional. Disponible: ${stock - existingCantidad}`);
+        return;
+      }
+      
+      existingRow.querySelector('.cantidad').textContent = newCantidad;
+    } else {
+      // Agregar nueva fila
+      const tbody = document.querySelector('#productosTable tbody');
+      const row = document.createElement('tr');
+      row.dataset.id = idProducto;
+      
+      row.innerHTML = `
+        <td>${idProducto}</td>
+        <td>${nombreProducto}</td>
+        <td>${marca}</td>
+        <td>${variante}</td>
+        <td class="cantidad">${cantidad}</td>
+        <td>
+          <button type="button" class="btn btn-sm btn-danger eliminar-producto">
+            <i class="fas fa-trash"></i>
+          </button>
+        </td>
+      `;
+      
+      tbody.appendChild(row);
+    }
+
+    // Limpiar inputs
+    cantidadInput.value = 1;
+    productoSelect.value = '';
+  }
+
+  // Handle form submission
+  document.getElementById('incidenciaForm').addEventListener('submit', function(e) {
+    const productos = Array.from(document.querySelectorAll('#productosTable tbody tr')).map(row => {
+      return {
+        id_producto: row.dataset.id,
+        nombre: row.querySelector('td:nth-child(2)').textContent,
+        cantidad: parseInt(row.querySelector('.cantidad').textContent)
+      };
+    });
+
+    if (productos.length === 0) {
+      e.preventDefault();
+      alert('Debe agregar al menos un producto');
+      return;
+    }
+
+    document.getElementById('productosInput').value = JSON.stringify(productos);
+  });
+  
+  // Manejar agregar productos manualmente
+  document.getElementById('agregarProducto').addEventListener('click', agregarProductoAlCarrito);
+
+  // Manejar eliminar productos
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('eliminar-producto') || e.target.closest('.eliminar-producto')) {
+      e.target.closest('tr').remove();
+    }
+  });
+});
+// Add validation to ensure an employee is selected
+document.getElementById('incidenciaForm').addEventListener('submit', function(e) {
+  const empleadoSelect = document.getElementById('dnivend');
+  if (!empleadoSelect.value) {
+    e.preventDefault();
+    alert('Debe seleccionar un empleado');
+    empleadoSelect.focus();
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>

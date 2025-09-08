@@ -1,3 +1,4 @@
+// In stockController.js - improve error handling
 const stockService = require('../services/stockService');
 
 module.exports = {
@@ -19,7 +20,21 @@ module.exports = {
       });
     } catch (err) {
       console.error('Error in listStock:', err);
-      next(err);
+      
+      // Check if it's a connection error
+      if (err.code === 'ECONNRESET' || err.code === 'PROTOCOL_CONNECTION_LOST') {
+        req.flash('error', 'Error de conexión con la base de datos. Por favor, intente nuevamente.');
+      } else {
+        req.flash('error', 'Error al cargar el inventario');
+      }
+      
+      // Render the page with empty stock and error message
+      res.render('stock/list', {
+        stock: [],
+        currentPage: 1,
+        totalPages: 1,
+        searchQuery: q || ''
+      });
     }
   },
 
@@ -30,11 +45,14 @@ module.exports = {
       res.download(filePath, 'stock.xlsx', (err) => {
         if (err) {
           console.error(err);
-          res.redirect('/stock?error=export');
+          req.flash('error', 'Error al descargar el archivo');
+          res.redirect('/stock');
         }
       });
     } catch (err) {
-      next(err);
+      console.error('Error exporting to Excel:', err);
+      req.flash('error', 'Error al generar el archivo Excel');
+      res.redirect('/stock');
     }
   }
 };

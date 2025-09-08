@@ -134,7 +134,9 @@ const routes = [
   require('./routes/clienteRoutes'),
   require('./routes/precioRoutes'),
   require('./routes/ventaRoutes'),
-  require('./routes/accesoRoutes')
+  require('./routes/accesoRoutes'),
+  require('./routes/incidenciaRoutes'),
+  require('./routes/health') 
 ];
 
 routes.forEach(route => app.use(route));

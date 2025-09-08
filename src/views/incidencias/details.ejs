@@ -1,0 +1,66 @@
+<%- include('../partials/header') %>
+
+<h1>Detalles de Incidencia #<%= incidencia.id_incidencia %></h1>
+
+<div class="card">
+  <div class="card-header">
+    Información de la Incidencia
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <p><strong>Fecha:</strong> <%= new Date(incidencia.fecha).toLocaleDateString() %></p>
+        <p><strong>Tipo:</strong> 
+          <% if (incidencia.tipo === 'daño') { %>
+            <span class="badge badge-danger">Daño</span>
+          <% } else if (incidencia.tipo === 'pérdida') { %>
+            <span class="badge badge-warning">Pérdida</span>
+          <% } else { %>
+            <span class="badge badge-info">Otros</span>
+          <% } %>
+        </p>
+      </div>
+      <div class="col-md-6">
+        <p><strong>Empleado:</strong> <%= incidencia.empleado %></p>
+        <p><strong>Descripción:</strong> <%= incidencia.descripcion || 'N/A' %></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h3 class="mt-4">Productos Afectados</h3>
+
+<% if (incidencia.detalles.length === 0) { %>
+  <div class="alert alert-info">
+    No hay productos registrados en esta incidencia.
+  </div>
+<% } else { %>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID Producto</th>
+        <th>Producto</th>
+        <th>Marca</th>
+        <th>Variante</th>
+        <th>Cantidad</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% incidencia.detalles.forEach(detalle => { %>
+        <tr>
+          <td><%= detalle.id_producto %></td>
+          <td><%= detalle.producto_nombre %></td>
+          <td><%= detalle.marca || 'N/A' %></td>
+          <td><%= detalle.variante || 'N/A' %></td>
+          <td><%= detalle.cantidad %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
+
+<div class="mt-3">
+  <a href="/incidencias" class="btn btn-secondary">Volver a Incidencias</a>
+</div>
+
+<%- include('../partials/footer') %>
