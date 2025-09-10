@@ -25,7 +25,6 @@
       <th>DNI</th>
       <th>Nombres</th>
       <th>Apellidos</th>
-      <th>Fecha Nacimiento</th>
       <th>Sexo</th>
       <th>Acciones</th>
     </tr>
@@ -37,7 +36,6 @@
         <td><%= cliente.dni %></td>
         <td><%= cliente.nombres %></td>
         <td><%= cliente.apellidos %></td>
-        <td><%= dateFormatter.format(cliente.fecnac) %></td>
         <td><%= cliente.sexo === 'M' ? 'Masculino' : 'Femenino' %></td>
         <td class="actions">
           <a href="/clientes/editar/<%= cliente.dni %>" class="btn-edit">Editar</a>

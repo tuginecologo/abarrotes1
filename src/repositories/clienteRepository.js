@@ -30,20 +30,20 @@ module.exports = {
   },
 
   // Create new client
-  createCliente: async (dni, nombres, apellidos, fecnac, sexo) => {
+  createCliente: async (dni, nombres, apellidos, sexo) => {
     const [result] = await pool.query(
-      `INSERT INTO cliente (dni, nombres, apellidos, fecnac, sexo) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [dni, nombres, apellidos, fecnac, sexo]
+      `INSERT INTO cliente (dni, nombres, apellidos, sexo) 
+       VALUES (?, ?, ?, ?)`,
+      [dni, nombres, apellidos, sexo]
     );
     return result.insertId;
   },
   
   // Update client
-  updateCliente: async (dni, nombres, apellidos, fecnac, sexo) => {
+  updateCliente: async (dni, nombres, apellidos, sexo) => {
     await pool.query(
-      'UPDATE cliente SET nombres = ?, apellidos = ?, fecnac = ?, sexo = ? WHERE dni = ?',
-      [nombres, apellidos, fecnac, sexo, dni]
+      'UPDATE cliente SET nombres = ?, apellidos = ?, sexo = ? WHERE dni = ?',
+      [nombres, apellidos, sexo, dni]
     );
   },
 

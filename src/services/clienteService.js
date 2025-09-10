@@ -24,7 +24,6 @@ module.exports = {
       clienteData.dni,
       clienteData.nombres,
       clienteData.apellidos,
-      clienteData.fecnac,
       clienteData.sexo
     );
   },
@@ -35,7 +34,6 @@ module.exports = {
       dni,
       clienteData.nombres,
       clienteData.apellidos,
-      clienteData.fecnac,
       clienteData.sexo
     );
   },
@@ -64,7 +62,6 @@ module.exports = {
       { header: 'DNI', key: 'dni', width: 15 },
       { header: 'Nombres', key: 'nombres', width: 30 },
       { header: 'Apellidos', key: 'apellidos', width: 30 },
-      { header: 'Fecha Nacimiento', key: 'fecnac', width: 20 },
       { header: 'Sexo', key: 'sexo', width: 10 }
     ];
 
@@ -73,12 +70,12 @@ module.exports = {
     });
 
     // Format date
-    worksheet.eachRow((row) => {
-      const fechaCell = row.getCell('fecnac');
-      if (fechaCell.value) {
-        fechaCell.numFmt = 'dd/mm/yyyy';
-      }
-    });
+    // worksheet.eachRow((row) => {
+    //   const fechaCell = row.getCell('fecnac');
+    //   if (fechaCell.value) {
+    //     fechaCell.numFmt = 'dd/mm/yyyy';
+    //   }
+    // });
 
     const exportDir = path.join(__dirname, '../public/exports');
     if (!fs.existsSync(exportDir)) {
