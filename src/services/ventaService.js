@@ -99,10 +99,10 @@ createVenta: async (ventaData) => {
 
     // 1. Create venta record 
     const [ventaResult] = await connection.query(
-      `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details, descuento)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [ventaData.dnivend, ventaData.dnicomp, ventaData.fecha, 
-       ventaData.mediodepago, noperacionToStore, paymentDetailsToStore]
+       ventaData.mediodepago, noperacionToStore, paymentDetailsToStore, ventaData.descuento || 0]
     );
     
     const id_venta = ventaResult.insertId;
@@ -142,12 +142,15 @@ createVenta: async (ventaData) => {
       );
     }
 
-    // 3. Create monto_venta record
-    await connection.query(
-      `INSERT INTO monto_venta (total, id_venta)
-       VALUES (?, ?)`,
-      [totalVenta, id_venta]
-    );
+    // Apply discount
+totalVenta -= ventaData.descuento || 0;
+
+// 3. Create monto_venta record with discounted total
+await connection.query(
+  `INSERT INTO monto_venta (total, id_venta)
+   VALUES (?, ?)`,
+  [totalVenta, id_venta]
+);
 
     await connection.commit();
     return id_venta;
@@ -325,6 +328,7 @@ exportToExcel: async () => {
       { header: 'Cliente', key: 'cliente', width: 30 },
       { header: 'Total Original (S/)', key: 'original_total', width: 15 },
       { header: 'Total Devoluciones (S/)', key: 'returns_amount', width: 15 },
+      { header: 'Descuento (S/)', key: 'descuento', width: 15 },
       { header: 'Total Neto (S/)', key: 'net_total', width: 15 },
       { header: 'Método Pago', key: 'mediodepago', width: 15 }
     ];
@@ -338,6 +342,7 @@ exportToExcel: async () => {
         cliente: venta.cliente || 'N/A',
         original_total: parseFloat(venta.original_total) || 0,
         returns_amount: parseFloat(venta.returns_amount) || 0,
+        descuento: parseFloat(venta.descuento) || 0,
         net_total: parseFloat(venta.net_total) || 0,
         mediodepago: venta.mediodepago ? getMetodoPago(venta.mediodepago) : 'No especificado'
       });

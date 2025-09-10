@@ -9,6 +9,7 @@ module.exports = {
 
   // Get sales with pagination
 // Get sales with pagination
+// Get sales with pagination
 getVentas: async (page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
   const [rows] = await pool.query(
@@ -29,7 +30,8 @@ getVentas: async (page = 1, limit = 10) => {
          JOIN monto_venta_mod mvm ON vm.id_venta_mod = mvm.id_venta_mod
          WHERE vm.id_venta = v.id_venta
        ), 0)) as net_total,
-       (SELECT SUM(cantidad) FROM detalle_venta WHERE id_venta = v.id_venta) as items_count
+       (SELECT SUM(cantidad) FROM detalle_venta WHERE id_venta = v.id_venta) as items_count,
+       v.descuento  -- Add discount field
      FROM venta v
      JOIN empleado e ON v.dnivend = e.dni
      JOIN cliente c ON v.dnicomp = c.dni
@@ -92,18 +94,17 @@ getProductosEnStock: async () => {
     return rows[0]?.precio || 0;
   },
 
-  // Create sale
-  createVenta: async (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details = null) => {
-    console.log("Creating venta record:", { dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details });
-    const [result] = await pool.query(
-      `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details]
-    );
-    console.log("Venta created with ID:", result.insertId);
-    return result.insertId;
-  },
-  
+// Create sale with discount
+createVenta: async (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details = null, descuento = 0) => {
+  console.log("Creating venta record:", { dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details, descuento });
+  const [result] = await pool.query(
+    `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details, descuento)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details, descuento]
+  );
+  console.log("Venta created with ID:", result.insertId);
+  return result.insertId;
+},
   
   createDetalleVenta: async (cantidad, id_producto, observacion, id_venta) => {
     console.log("Creating detalle_venta:", { cantidad, id_producto, observacion, id_venta });
@@ -147,7 +148,8 @@ getProductosEnStock: async () => {
          ), 0)) as net_total,
          v.mediodepago,
          v.noperacion,
-         v.payment_details
+         v.payment_details,
+         v.descuento,  -- Add discount field
          FROM venta v
          JOIN empleado e ON v.dnivend = e.dni
          JOIN cliente c ON v.dnicomp = c.dni
@@ -317,7 +319,8 @@ getAllVentas: async () => {
            WHERE vm.id_venta = v.id_venta
          ), 0)) as net_total,
          (SELECT SUM(cantidad) FROM detalle_venta WHERE id_venta = v.id_venta) as items_count,
-         v.mediodepago
+         v.mediodepago,
+         v.descuento  -- Add discount field
        FROM venta v
        JOIN empleado e ON v.dnivend = e.dni
        JOIN cliente c ON v.dnicomp = c.dni

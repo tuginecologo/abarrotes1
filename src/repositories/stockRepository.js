@@ -2,10 +2,6 @@ const pool = require('../config/database');
 const { retryOperation } = require('../utils/retry');
 
 module.exports = {
-  // Get current stock levels with product info
-// In stockRepository.js - update the getStock method
-// In stockRepository.js - update the getStock method
-// In stockRepository.js - optimize the getStock method
 getStock: async (page = 1, limit = 10, search = '') => {
   const offset = (page - 1) * limit;
   

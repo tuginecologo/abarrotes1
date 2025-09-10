@@ -46,7 +46,7 @@ module.exports = {
   // Create new sale
   createVenta: async (req, res, next) => {
     try {
-      const { dnicomp, dnivend, fecha, mediodepago, payment_details, productos } = req.body;
+      const { dnicomp, dnivend, fecha, mediodepago, payment_details, productos, descuento = 0 } = req.body;
       let { noperacion } = req.body; // <-- Asegúrate de que noperacion se declara con 'let'
       const options = await ventaService.getDropdownOptions();
     
@@ -170,6 +170,43 @@ module.exports = {
     } catch (err) {
       next(err);
     }
+  // Validate discount
+if (descuento < 0) {
+  req.flash('error', 'El descuento no puede ser negativo');
+  return res.render('ventas/new', {
+    options,
+    venta: req.body,
+    productos: productosArray
+  });
+}
+
+// Calculate total before discount to validate
+let totalBeforeDiscount = 0;
+for (const producto of productosArray) {
+  const [price] = await ventaService.getProductPrice(producto.id_producto);
+  totalBeforeDiscount += price[0].precio * producto.cantidad;
+}
+
+if (descuento > totalBeforeDiscount) {
+  req.flash('error', 'El descuento no puede ser mayor al total de la venta');
+  return res.render('ventas/new', {
+    options,
+    venta: req.body,
+    productos: productosArray
+  });
+}
+
+// Pass discount to service
+const ventaId = await ventaService.createVenta({
+  dnivend,
+  dnicomp,
+  fecha: fecha || new Date().toISOString().split('T')[0],
+  mediodepago,
+  noperacion,
+  payment_details,
+  productos: productosArray,
+  descuento: parseFloat(descuento) || 0  // Add discount
+});
   },
   
   // Get sale details

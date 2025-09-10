@@ -44,6 +44,9 @@
             <% if (venta.noperacion) { %> (Op: <%= venta.noperacion %>) <% } %>
           <% } %>
         </p>
+        <!-- Add after payment method display -->
+<p><strong>Descuento:</strong> S/ <%= venta.descuento.toFixed(2) %></p>
+<p><strong>Total sin descuento:</strong> S/ <%= (venta.total + venta.descuento).toFixed(2) %></p>
         <!-- REMOVE THIS DUPLICATE LINE: <p><strong>N° Operación:</strong> <%= venta.noperacion %></p> -->
       </div>
     </div>

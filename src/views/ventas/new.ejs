@@ -155,6 +155,7 @@
       <label for="electronicOperation">N° Operación Electrónica</label>
       <input type="text" class="form-control" id="electronicOperation" name="electronicOperation">
     </div>
+
     
     <div class="form-group">
       <label>Resumen de Pago:</label>
@@ -168,7 +169,12 @@
     <label for="noperacion">Número de Operación</label>
     <input type="text" class="form-control" id="noperacion" name="noperacion">
   </div>
-
+    <!-- Add after payment method fields -->
+    <div class="form-group">
+      <label for="descuento">Descuento (S/)</label>
+      <input type="number" class="form-control" id="descuento" name="descuento" 
+            step="0.01" min="0" value="0" onchange="actualizarTotal()">
+    </div>
   <button type="submit" class="btn btn-success">
     <i class="fas fa-save"></i> Registrar Venta
   </button>
@@ -481,18 +487,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Actualizar total
   function actualizarTotal() {
-    const subtotals = Array.from(document.querySelectorAll('.subtotal')).map(el => {
-      return parseFloat(el.textContent.replace('S/ ', ''));
-    });
-    
-    const total = subtotals.reduce((sum, current) => sum + current, 0);
-    document.getElementById('totalVenta').textContent = `S/ ${total.toFixed(2)}`;
-    
-    // Update payment summary if mixed payment is selected
-    if (mediodepagoSelect.value === '5') {
-      updatePaymentSummary();
-    }
+  const subtotals = Array.from(document.querySelectorAll('.subtotal')).map(el => {
+    return parseFloat(el.textContent.replace('S/ ', ''));
+  });
+  
+  const total = subtotals.reduce((sum, current) => sum + current, 0);
+  const descuento = parseFloat(document.getElementById('descuento').value) || 0;
+  const totalConDescuento = total - descuento;
+  
+  document.getElementById('totalVenta').textContent = `S/ ${totalConDescuento.toFixed(2)}`;
+  
+  // Update payment summary if mixed payment is selected
+  if (mediodepagoSelect.value === '5') {
+    updatePaymentSummary();
   }
+}
 
   document.getElementById('refreshStock').addEventListener('click', async function() {
     const response = await fetch('/ventas/nueva');
