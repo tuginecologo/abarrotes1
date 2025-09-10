@@ -15,7 +15,7 @@ const flash = require('connect-flash');
 const helmet = require('helmet');
 const compression = require('compression');
 
-const pool = require('./database');
+// const pool = require('./database');
 
 // // Initialize basic middleware
 app.use(express.json());
