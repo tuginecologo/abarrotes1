@@ -1,16 +1,6 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-// const pool = mysql.createPool({
-//   host: process.env.DB_HOST || 'localhost',
-//   user: process.env.DB_USER || 'root',
-//   password: process.env.DB_PASSWORD || '',
-//   database: 'ASP',
-//   waitForConnections: true,
-//   connectionLimit: 10
-// });
-
-
 const pool = mysql.createPool({
   host: process.env.MYSQLHOST || 'localhost',
   user: process.env.MYSQLUSER || 'root',
@@ -20,9 +10,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  acquireTimeout: 60000, // 60 seconds
-  timeout: 60000, // 60 seconds
-  reconnect: true,
+  // Remove invalid options: acquireTimeout, timeout, reconnect
   ssl: process.env.NODE_ENV === 'production' ? { 
     rejectUnauthorized: false 
   } : null
@@ -36,7 +24,10 @@ pool.getConnection()
   })
   .catch(err => {
     console.error('Database connection failed:', err);
-    process.exit(1);
+    // Don't exit process in production - it causes 502 errors
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
   });
 
 module.exports = pool;

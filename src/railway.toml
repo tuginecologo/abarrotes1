@@ -1,0 +1,13 @@
+[deploy]
+startCommand = "npm start"
+buildCommand = "echo 'No build needed'"
+
+[[services]]
+name = "web"
+[[services.ports]]
+http = 80
+[[services.ports]]
+http = 443
+
+[services.env]
+NODE_ENV = "production"

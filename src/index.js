@@ -15,6 +15,8 @@ const flash = require('connect-flash');
 const helmet = require('helmet');
 const compression = require('compression');
 
+const pool = require('./database');
+
 // // Initialize basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -54,6 +56,15 @@ app.set('views', path.join(__dirname, 'views'));
 // Serve static files from src/public directory
 const publicPath = path.join(__dirname, 'public');
 console.log(`Static files served from: ${publicPath}`);
+// Serve static files
+// app.use(express.static('public', {
+//   maxAge: '1y',
+//   setHeaders: function (res, path) {
+//     if (path.endsWith('.css')) {
+//       res.setHeader('Content-Type', 'text/css');
+//     }
+//   }
+// }));
 
 app.use(express.static(publicPath, {
   maxAge: '1y',
@@ -180,7 +191,7 @@ const server = app.listen(port, '0.0.0.0', () => {
 app.get('/debug/env', (req, res) => {
   res.json({
     node_env: process.env.NODE_ENV,
-    mysql_connected: !!pool._freeConnections.length,
+    mysql_connected: pool && pool._freeConnections ? pool._freeConnections.length : 'pool not initialized',
     session_config: {
       store: req.sessionStore ? 'connected' : 'disconnected',
       secret: !!process.env.SESSION_SECRET
@@ -190,6 +201,13 @@ app.get('/debug/env', (req, res) => {
 
 app.get('/debug/db', async (req, res) => {
   try {
+    if (!pool) {
+      return res.status(500).json({
+        db_connection: 'failed',
+        error: 'Database pool not initialized'
+      });
+    }
+    
     const [rows] = await pool.query('SELECT 1 + 1 AS solution');
     res.json({ 
       db_connection: 'success',
@@ -199,6 +217,32 @@ app.get('/debug/db', async (req, res) => {
     res.status(500).json({
       db_connection: 'failed',
       error: err.message
+    });
+  }
+});
+app.get('/health', async (req, res) => {
+  try {
+    let dbStatus = 'unknown';
+    
+    if (pool) {
+      try {
+        const [rows] = await pool.query('SELECT 1 as health_check');
+        dbStatus = 'connected';
+      } catch (err) {
+        dbStatus = 'disconnected';
+      }
+    }
+    
+    res.status(200).json({ 
+      status: 'OK', 
+      database: dbStatus,
+      timestamp: new Date().toISOString() 
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      error: err.message,
+      timestamp: new Date().toISOString() 
     });
   }
 });
