@@ -6,6 +6,7 @@ console.log('Environment Variables:', {
   MYSQLDATABASE: process.env.MYSQLDATABASE,
   PORT: process.env.PORT
 });
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -15,7 +16,23 @@ const flash = require('connect-flash');
 const helmet = require('helmet');
 const compression = require('compression');
 
-// const pool = require('./database');
+// Conditionally import database based on environment
+let pool;
+try {
+  if (process.env.NODE_ENV === 'production' && process.env.MYSQLHOST) {
+    // Use Railway-specific database config
+    pool = require('./database-railway');
+  } else {
+    // Use local database config
+    pool = require('./database');
+  }
+  console.log('Database module loaded successfully');
+} catch (error) {
+  console.error('Failed to load database module:', error.message);
+  // Continue without database connection
+  pool = null;
+}
+
 
 // // Initialize basic middleware
 app.use(express.json());
@@ -254,5 +271,19 @@ server.on('error', (error) => {
     process.exit(1);
   } else {
     console.error('Server error:', error);
+  }
+});
+// Example route with error handling
+app.get('/some-route', async (req, res) => {
+  if (!pool) {
+    return res.status(500).json({ error: 'Database not available' });
+  }
+  
+  try {
+    const [rows] = await pool.query('SELECT * FROM some_table');
+    res.json(rows);
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({ error: 'Database query failed' });
   }
 });

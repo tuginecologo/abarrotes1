@@ -16,7 +16,7 @@ const pool = mysql.createPool({
   } : null
 });
 
-// Test connection immediately
+// Test connection but don't exit process on failure in production
 pool.getConnection()
   .then(conn => {
     console.log('Successfully connected to MySQL database');
