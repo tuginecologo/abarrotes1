@@ -137,6 +137,7 @@ main {
 width: calc(100% - 22px); /* Adjust for padding and border */
 padding: 10px 10px; /* Consistent padding */
 border: 1px solid #00FF00;
+background-color: #000;
 color: white;
 border-radius: 3px;
 box-sizing: border-box; /* Include padding and border in element's total width */
