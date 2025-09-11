@@ -163,7 +163,7 @@ module.exports = {
         noperacion, // <-- El valor de `noperacion` es ahora el correcto
         payment_details,
         productos: productosArray
-      });
+      })
       
       req.flash('success', `Venta #${ventaId} registrada correctamente`);
       res.redirect('/ventas');

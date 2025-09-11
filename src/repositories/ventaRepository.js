@@ -1,5 +1,6 @@
 
 const pool = require('../config/database');
+const { getMetodoPago } = require('../utils/paymentMethods');
 
 module.exports = {
   // Get connection for transaction
@@ -149,7 +150,7 @@ createVenta: async (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_de
          v.mediodepago,
          v.noperacion,
          v.payment_details,
-         v.descuento,  -- Add discount field
+         v.descuento
          FROM venta v
          JOIN empleado e ON v.dnivend = e.dni
          JOIN cliente c ON v.dnicomp = c.dni
@@ -353,13 +354,13 @@ getReturnedQuantitiesByVenta: async (ventaId) => {
 },
 }
 
-function getMetodoPago(codigo) {
-  switch(codigo) {
-    case '1': return 'Efectivo';
-    case '2': return 'Yape';
-    case '3': return 'Plin';
-    case '4': return 'Transferencia';
-    case '5': return 'PagoMixto'
-    default: return 'Desconocido';
-  }
-}
+// function getMetodoPago(codigo) {
+//   switch(codigo) {
+//     case '1': return 'Efectivo';
+//     case '2': return 'Yape';
+//     case '3': return 'Plin';
+//     case '4': return 'Transferencia';
+//     case '5': return 'PagoMixto'
+//     default: return 'Desconocido';
+//   }
+// }

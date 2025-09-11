@@ -45,9 +45,8 @@
           <% } %>
         </p>
         <!-- Add after payment method display -->
-<p><strong>Descuento:</strong> S/ <%= venta.descuento.toFixed(2) %></p>
-<p><strong>Total sin descuento:</strong> S/ <%= (venta.total + venta.descuento).toFixed(2) %></p>
-        <!-- REMOVE THIS DUPLICATE LINE: <p><strong>N° Operación:</strong> <%= venta.noperacion %></p> -->
+        <p><strong>Descuento:</strong> S/ <%= (Number(venta.descuento) || 0).toFixed(2) %></p>
+        <p><strong>Total sin descuento:</strong> S/ <%= (Number(venta.total) + (Number(venta.descuento) || 0)).toFixed(2) %></p>
       </div>
     </div>
   </div>
