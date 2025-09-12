@@ -14,9 +14,9 @@
                     <th>Marca</th>
                     <th>Descripción</th>
                     <th>Variante</th>
-                    <th>Cantidad</th>
+                    <!-- <th>Cantidad</th> -->
                     <th>Precio (S/)</th>
-                    <th>Estado</th>
+                    <!-- <th>Estado</th> -->
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -28,7 +28,6 @@
                         <td><%= item.marca || '-' %></td>
                         <td><%= item.descripcion || '-' %></td>
                         <td><%= item.variante || '-' %></td>
-                        <td><%= item.cantidad %></td>
                         <td>
                             <% if (item.precio_publico) { %>
                                 S/ <%= item.precio_publico.toFixed(2) %>
@@ -36,19 +35,10 @@
                                 -
                             <% } %>
                         </td>
-                        <td>
-                            <% if (item.cantidad <= 0) { %>
-                                <span class="badge badge-danger">Agotado</span>
-                            <% } else if (item.cantidad <= 10) { %>
-                                <span class="badge badge-warning">Bajo Stock</span>
-                            <% } else { %>
-                                <span class="badge badge-success">Disponible</span>
-                            <% } %>
-                        </td>
                         <!-- In each table row, add this cell -->
 <td>
     <a href="/public/stock/<%= item.id_producto %>/media" class="btn-media" title="Ver medios del producto">
-      <i class="fas fa-images"></i> Ver Medios
+      <i class="fas fa-images"></i> Ver Imágenes
     </a>
   </td>
                     </tr>
