@@ -231,7 +231,7 @@ th {
   font-weight: bold;
 }
 tr:hover {
-  background-color: #f9f9f9;
+  background-color: black;
 }
 .btn {
   display: inline-block;
