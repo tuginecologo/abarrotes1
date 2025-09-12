@@ -1,3 +1,4 @@
+// const { getVideoEmbed } = require('../helpers/videoHelper');
 const productoService = require('../services/productoService');
 
 module.exports = {
@@ -93,6 +94,78 @@ module.exports = {
   //     next(err);
   //   }
   // },
+
+  // productoController.js - Add these methods
+
+// Show product media management page
+showMediaForm: async (req, res, next) => {
+  try {
+    const product = await productoService.getProductById(req.params.id);
+    const images = await productoService.getProductImages(req.params.id);
+    const videos = await productoService.getProductVideos(req.params.id);
+    
+    res.render('productos/media', { 
+      product, 
+      images, 
+      videos,
+      // getVideoEmbed, // Pass the helper function to the view
+      success_msg: req.query.success,
+      error_msg: req.query.error
+    });
+  } catch (err) {
+    next(err);
+  }
+},
+
+// Handle image upload
+uploadImage: async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.redirect(`/productos/media/${req.params.id}?error=No se seleccionó ninguna imagen`);
+    }
+
+    await productoService.addProductImage(req.params.id, req.file.filename);
+    res.redirect(`/productos/media/${req.params.id}?success=Imagen subida correctamente`);
+  } catch (err) {
+    next(err);
+  }
+},
+
+// Handle video link addition
+addVideo: async (req, res, next) => {
+  try {
+    const { video_url } = req.body;
+    
+    if (!video_url) {
+      return res.redirect(`/productos/media/${req.params.id}?error=URL de video requerida`);
+    }
+
+    await productoService.addProductVideo(req.params.id, video_url);
+    res.redirect(`/productos/media/${req.params.id}?success=Video agregado correctamente`);
+  } catch (err) {
+    next(err);
+  }
+},
+
+// Delete image
+deleteImage: async (req, res, next) => {
+  try {
+    await productoService.deleteProductImage(req.params.imageId);
+    res.redirect(`/productos/media/${req.params.id}?success=Imagen eliminada correctamente`);
+  } catch (err) {
+    next(err);
+  }
+},
+
+// Delete video
+deleteVideo: async (req, res, next) => {
+  try {
+    await productoService.deleteProductVideo(req.params.videoId);
+    res.redirect(`/productos/media/${req.params.id}?success=Video eliminado correctamente`);
+  } catch (err) {
+    next(err);
+  }
+},
 
   exportToExcel: async (req, res, next) => {
     try {

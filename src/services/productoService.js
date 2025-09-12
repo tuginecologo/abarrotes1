@@ -73,6 +73,34 @@ module.exports = {
   //   return results;
   // },
 
+  // productoService.js - Add these methods
+
+// Image methods
+getProductImages: async (idProducto) => {
+  return await productoRepository.getProductImages(idProducto);
+},
+
+addProductImage: async (idProducto, imagePath) => {
+  return await productoRepository.addProductImage(idProducto, imagePath);
+},
+
+deleteProductImage: async (idImagen) => {
+  await productoRepository.deleteProductImage(idImagen);
+},
+
+// Video methods
+getProductVideos: async (idProducto) => {
+  return await productoRepository.getProductVideos(idProducto);
+},
+
+addProductVideo: async (idProducto, videoUrl) => {
+  return await productoRepository.addProductVideo(idProducto, videoUrl);
+},
+
+deleteProductVideo: async (idVideo) => {
+  await productoRepository.deleteProductVideo(idVideo);
+},
+
   // Export to Excel
   exportToExcel: async () => {
     const workbook = new excel.Workbook();

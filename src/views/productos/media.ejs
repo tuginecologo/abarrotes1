@@ -1,0 +1,90 @@
+<%- include('../partials/header') %>
+<h1>Gestión de Medios para: <%= product.nombre %></h1>
+
+<div class="media-container">
+  <div class="upload-section">
+    <h2>Subir Imagen</h2>
+    <form action="/productos/media/<%= product.id_producto %>/imagen" method="POST" enctype="multipart/form-data">
+      <input type="file" name="imagen" accept="image/*" required>
+      <button type="submit">Subir Imagen</button>
+    </form>
+  </div>
+
+  <div class="video-section">
+    <h2>Agregar Video</h2>
+    <form action="/productos/media/<%= product.id_producto %>/video" method="POST">
+      <input type="url" name="video_url" placeholder="URL del video (YouTube, Vimeo, etc.)" required>
+      <button type="submit">Agregar Video</button>
+    </form>
+  </div>
+
+  <div class="images-section">
+    <h2>Imágenes del Producto</h2>
+    <% if (images.length > 0) { %>
+      <div class="image-gallery">
+        <% images.forEach(image => { %>
+          <div class="image-item">
+            <img src="/uploads/productos/<%= image.imagen_path %>" alt="Imagen del producto" onclick="openModal(this)">
+            <form action="/productos/media/<%= product.id_producto %>/imagen/eliminar/<%= image.id_imagen %>" method="POST">
+              <button type="submit" onclick="return confirm('¿Eliminar esta imagen?')">Eliminar</button>
+            </form>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <p>No hay imágenes para este producto.</p>
+    <% } %>
+  </div>
+
+  <div class="videos-section">
+    <h2>Videos del Producto</h2>
+    <% if (videos.length > 0) { %>
+      <div class="video-list">
+        <% videos.forEach(video => { %>
+          <div class="video-item">
+            <a href="<%= video.video_url %>" target="_blank" class="video-link"><%= video.video_url %></a>
+            <form action="/productos/media/<%= product.id_producto %>/video/eliminar/<%= video.id_video %>" method="POST">
+              <button type="submit" onclick="return confirm('¿Eliminar este video?')">Eliminar</button>
+            </form>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <p>No hay videos para este producto.</p>
+    <% } %>
+  </div>
+</div>
+
+<!-- Modal for image preview -->
+<div id="imageModal" class="modal">
+  <span class="close" onclick="closeModal()">&times;</span>
+  <img class="modal-content" id="modalImage">
+</div>
+
+<a href="/productos/editar/<%= product.id_producto %>" class="btn">Volver a Editar Producto</a>
+<a href="/productos" class="btn">Volver a Lista de Productos</a>
+
+<script>
+  // Function to open modal with clicked image
+  function openModal(img) {
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+    modal.style.display = "block";
+    modalImg.src = img.src;
+  }
+
+  // Function to close modal
+  function closeModal() {
+    document.getElementById("imageModal").style.display = "none";
+  }
+
+  // Close modal when clicking outside the image
+  window.onclick = function(event) {
+    const modal = document.getElementById("imageModal");
+    if (event.target == modal) {
+      closeModal();
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

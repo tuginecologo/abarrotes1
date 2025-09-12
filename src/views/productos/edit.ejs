@@ -22,7 +22,8 @@
   <div class="form-group">
     <label>Descripción: <textarea name="descripcion"><%= product.descripcion %></textarea></label>
   </div>
-  
+  <!-- Add this after the cancel button -->
+<a href="/productos/media/<%= product.id_producto %>" class="btn">Gestionar Medios</a>
   <button type="submit" class="btn">Guardar Cambios</button>
   <a href="/productos" class="btn-cancel">Cancelar</a>
 </form>

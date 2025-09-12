@@ -81,6 +81,8 @@ app.use(express.static(publicPath, {
     }
   }
 }));
+// Add this with your other static file serving
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/test-static', (req, res) => {
   res.json({

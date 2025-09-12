@@ -38,8 +38,8 @@ const employeeStorage = multer.diskStorage({
   }
 });
 
-const uploadProductImage = multer({ 
-  storage: productStorage,
+const uploadEmployeeImage = multer({ 
+  storage: employeeStorage,
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -50,13 +50,33 @@ const uploadProductImage = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
-const uploadEmployeeImage = multer({ 
-  storage: employeeStorage,
+// middlewares/upload.js - Add this configuration
+
+// Configure storage for product images
+const productImageStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads/productos');
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (err) {
+      cb(err);
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, 'product-' + req.params.id + '-' + uniqueSuffix + ext);
+  }
+});
+
+const uploadProductImage = multer({ 
+  storage: productImageStorage,
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'), false);
+      cb(new Error('Solo se permiten archivos de imagen!'), false);
     }
   },
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB

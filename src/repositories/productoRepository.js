@@ -69,11 +69,53 @@ createProduct: async (productData) => {
     );
   },
 
-  // Bulk delete products
-  // bulkDeleteProducts: async (ids) => {
-  //   await pool.query(
-  //     'DELETE FROM producto WHERE id_producto IN (?)',
-  //     [ids]
-  //   );
-  // }
+ // productoRepository.js - Add these methods
+
+// Image methods
+getProductImages: async (idProducto) => {
+  const [rows] = await pool.query(
+    'SELECT * FROM producto_imagen WHERE id_producto = ? ORDER BY fecha_creacion DESC',
+    [idProducto]
+  );
+  return rows;
+},
+
+addProductImage: async (idProducto, imagePath) => {
+  const [result] = await pool.query(
+    'INSERT INTO producto_imagen (id_producto, imagen_path) VALUES (?, ?)',
+    [idProducto, imagePath]
+  );
+  return result.insertId;
+},
+
+deleteProductImage: async (idImagen) => {
+  await pool.query(
+    'DELETE FROM producto_imagen WHERE id_imagen = ?',
+    [idImagen]
+  );
+},
+
+// Video methods
+getProductVideos: async (idProducto) => {
+  const [rows] = await pool.query(
+    'SELECT * FROM producto_video WHERE id_producto = ? ORDER BY fecha_creacion DESC',
+    [idProducto]
+  );
+  return rows;
+},
+
+addProductVideo: async (idProducto, videoUrl) => {
+  const [result] = await pool.query(
+    'INSERT INTO producto_video (id_producto, video_url) VALUES (?, ?)',
+    [idProducto, videoUrl]
+  );
+  return result.insertId;
+},
+
+deleteProductVideo: async (idVideo) => {
+  await pool.query(
+    'DELETE FROM producto_video WHERE id_video = ?',
+    [idVideo]
+  );
+}
 };
