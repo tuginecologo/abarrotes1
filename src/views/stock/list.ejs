@@ -48,7 +48,6 @@
       <th>Cantidad</th>
       <th>Precio (S/)</th>
       <th>Estado</th>
-      <th>Acciones</th> 
     </tr>
   </thead>
   <tbody>
@@ -76,16 +75,11 @@
             <span class="badge badge-success">Disponible</span>
           <% } %>
         </td>
-        <td>
-          <!-- Media management button -->
-          <a href="/productos/media/<%= item.id_producto %>" class="btn-media" title="Gestionar medios del producto">
-            <i class="fas fa-images"></i> Medios
-          </a>
-        </td>
       </tr>
     <% }) %>
   </tbody>
 </table>
+
 <div class="pagination">
   <% if (currentPage > 1) { %>
     <a href="/stock?page=<%= currentPage - 1 %>&q=<%= searchQuery %>" class="page-link">Anterior</a>

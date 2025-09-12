@@ -1,0 +1,99 @@
+<%- include('../partials/header') %>
+       <h1>Inventario Público de Productos</h1>
+
+        <form action="/public/stock" method="GET" class="search-form">
+            <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar productos...">
+            <button type="submit">Buscar</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Producto</th>
+                    <th>Producto</th>
+                    <th>Marca</th>
+                    <th>Descripción</th>
+                    <th>Variante</th>
+                    <th>Cantidad</th>
+                    <th>Precio (S/)</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% stock.forEach(item => { %>
+                    <tr>
+                        <td><%= item.id_producto %></td>
+                        <td><%= item.producto_nombre %></td>
+                        <td><%= item.marca || '-' %></td>
+                        <td><%= item.descripcion || '-' %></td>
+                        <td><%= item.variante || '-' %></td>
+                        <td><%= item.cantidad %></td>
+                        <td>
+                            <% if (item.precio_publico) { %>
+                                S/ <%= item.precio_publico.toFixed(2) %>
+                            <% } else { %>
+                                -
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (item.cantidad <= 0) { %>
+                                <span class="badge badge-danger">Agotado</span>
+                            <% } else if (item.cantidad <= 10) { %>
+                                <span class="badge badge-warning">Bajo Stock</span>
+                            <% } else { %>
+                                <span class="badge badge-success">Disponible</span>
+                            <% } %>
+                        </td>
+                        <!-- In each table row, add this cell -->
+<td>
+    <a href="/public/producto/<%= item.id_producto %>/media" class="btn-media" title="Ver medios del producto">
+      <i class="fas fa-images"></i> Ver Medios
+    </a>
+  </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <% if (currentPage > 1) { %>
+                <a href="/public/stock?page=<%= currentPage - 1 %>&q=<%= searchQuery %>" class="page-link">Anterior</a>
+            <% } %>
+            <span>Página <%= currentPage %> de <%= totalPages %></span>
+            <% if (currentPage < totalPages) { %>
+                <a href="/public/stock?page=<%= currentPage + 1 %>&q=<%= searchQuery %>" class="page-link">Siguiente</a>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Modal for image preview -->
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img class="modal-content" id="modalImage">
+    </div>
+
+    <script>
+        // Function to open modal with clicked image
+        function openModal(img) {
+            const modal = document.getElementById("imageModal");
+            const modalImg = document.getElementById("modalImage");
+            modal.style.display = "block";
+            modalImg.src = img.src;
+        }
+
+        // Function to close modal
+        function closeModal() {
+            document.getElementById("imageModal").style.display = "none";
+        }
+
+        // Close modal when clicking outside the image
+        window.onclick = function(event) {
+            const modal = document.getElementById("imageModal");
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,67 @@
+<%- include('../partials/header') %><h1>Medios para: <%= product.nombre %></h1>
+
+<div class="media-container">
+  <div class="images-section">
+    <h2>Imágenes del Producto</h2>
+    <% if (images.length > 0) { %>
+      <div class="image-gallery">
+        <% images.forEach(image => { %>
+          <div class="image-item">
+            <img src="/uploads/productos/<%= image.imagen_path %>" alt="Imagen del producto" onclick="openModal(this)">
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <p>No hay imágenes para este producto.</p>
+    <% } %>
+  </div>
+
+  <div class="videos-section">
+    <h2>Videos del Producto</h2>
+    <% if (videos.length > 0) { %>
+      <div class="video-list">
+        <% videos.forEach(video => { %>
+          <div class="video-item">
+            <a href="<%= video.video_url %>" target="_blank" class="video-link"><%= video.video_url %></a>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <p>No hay videos para este producto.</p>
+    <% } %>
+  </div>
+</div>
+
+<!-- Modal for image preview -->
+<div id="imageModal" class="modal">
+  <span class="close" onclick="closeModal()">&times;</span>
+  <img class="modal-content" id="modalImage">
+</div>
+
+<a href="/public/stock" class="btn">Volver al Inventario</a>
+<a href="/" class="btn">Volver al Inicio</a>
+
+<script>
+  // Function to open modal with clicked image
+  function openModal(img) {
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImage");
+    modal.style.display = "block";
+    modalImg.src = img.src;
+  }
+
+  // Function to close modal
+  function closeModal() {
+    document.getElementById("imageModal").style.display = "none";
+  }
+
+  // Close modal when clicking outside the image
+  window.onclick = function(event) {
+    const modal = document.getElementById("imageModal");
+    if (event.target == modal) {
+      closeModal();
+    }
+  }
+</script>
+
+<%- include('../partials/footer') %>

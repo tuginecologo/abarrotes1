@@ -6,6 +6,7 @@ const asyncWrapper = require('../utils/asyncWrapper');
 const stockService = require('../services/stockService');
 
 // List stock
+router.get('/public/stock', asyncWrapper(stockController.publicStock));
 router.get('/stock', checkAuth, checkRole(['0', '1']), asyncWrapper(stockController.listStock));
 
 router.get('/stock/init', checkAuth, checkRole(['0', '1']), asyncWrapper(async (req, res) => {
@@ -34,5 +35,6 @@ router.get('/stock/debug', checkAuth, checkRole(['0', '1']), async (req, res) =>
       res.status(500).json({ error: error.message });
     }
   });
+  router.get('/public/stock/:id/media', asyncWrapper(stockController.publicProductMedia));
 
 module.exports = router;
