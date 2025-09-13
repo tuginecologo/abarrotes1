@@ -230,9 +230,9 @@ th {
   /* background-color: #f8f8f8; */
   font-weight: bold;
 }
-tr:hover {
+/* tr:hover {
   background-color: #f9f9f9;
-}
+} */
 .btn {
   display: inline-block;
   background: #00FF00;
