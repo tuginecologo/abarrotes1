@@ -137,20 +137,21 @@ createVenta: async (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_de
       connection = await pool.getConnection();
       
       const [venta] = await connection.query(
-        `SELECT v.*, 
-         CONCAT(e.nombres, ' ', e.apellidos) as vendedor,
-         CONCAT(c.nombres, ' ', c.apellidos) as cliente,
-         m.total,
-         (m.total + IFNULL((
-           SELECT SUM(mvm.total)
-           FROM venta_mod vm
-           JOIN monto_venta_mod mvm ON vm.id_venta_mod = mvm.id_venta_mod
-           WHERE vm.id_venta = v.id_venta
-         ), 0)) as net_total,
-         v.mediodepago,
-         v.noperacion,
-         v.payment_details,
-         v.descuento
+        `SELECT 
+           v.*, 
+           CONCAT(e.nombres, ' ', e.apellidos) as vendedor,
+           CONCAT(c.nombres, ' ', c.apellidos) as cliente,
+           m.total,
+           (m.total + IFNULL((
+             SELECT SUM(mvm.total)
+             FROM venta_mod vm
+             JOIN monto_venta_mod mvm ON vm.id_venta_mod = mvm.id_venta_mod
+             WHERE vm.id_venta = v.id_venta
+           ), 0)) as net_total,
+           v.mediodepago,
+           v.noperacion,
+           v.payment_details,
+           v.descuento
          FROM venta v
          JOIN empleado e ON v.dnivend = e.dni
          JOIN cliente c ON v.dnicomp = c.dni
@@ -165,7 +166,7 @@ createVenta: async (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_de
   
       const ventaData = venta[0];
   
-      // UPDATE THIS QUERY to include marca, variante, descripcion
+      // Get sale details
       const [detalles] = await connection.query(
         `SELECT 
            dv.*, 
