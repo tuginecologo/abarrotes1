@@ -43,171 +43,158 @@ module.exports = {
     }
   },
 
-  // Create new sale
-  createVenta: async (req, res, next) => {
+// Create new sale
+createVenta: async (req, res, next) => {
+  try {
+    const { dnicomp, dnivend, fecha, mediodepago, payment_details, productos, descuento = 0 } = req.body;
+    let { noperacion } = req.body;
+    const options = await ventaService.getDropdownOptions();
+  
+    let productosArray = [];
     try {
-      const { dnicomp, dnivend, fecha, mediodepago, payment_details, productos, descuento = 0 } = req.body;
-      let { noperacion } = req.body; // <-- Asegúrate de que noperacion se declara con 'let'
-      const options = await ventaService.getDropdownOptions();
-    
-      let productosArray = [];
-      try {
-        productosArray = typeof productos === 'string' ? JSON.parse(productos) : productos;
-        if (!Array.isArray(productosArray)) {
-          productosArray = [];
-        }
-      } catch (e) {
-        req.flash('error', 'Error en el formato de productos');
-        return res.render('ventas/new', { 
+      productosArray = typeof productos === 'string' ? JSON.parse(productos) : productos;
+      if (!Array.isArray(productosArray)) {
+        productosArray = [];
+      }
+    } catch (e) {
+      req.flash('error', 'Error en el formato de productos');
+      return res.render('ventas/new', { 
+        options,
+        venta: req.body,
+        productos: []
+      });
+    }
+
+    // Validate discount
+    if (descuento < 0) {
+      req.flash('error', 'El descuento no puede ser negativo');
+      return res.render('ventas/new', {
+        options,
+        venta: req.body,
+        productos: productosArray
+      });
+    }
+
+    // Calculate total before discount to validate
+    let totalBeforeDiscount = 0;
+    for (const producto of productosArray) {
+      const [price] = await ventaService.getProductPrice(producto.id_producto);
+      totalBeforeDiscount += price[0].precio * producto.cantidad;
+    }
+
+    if (descuento > totalBeforeDiscount) {
+      req.flash('error', 'El descuento no puede ser mayor al total de la venta');
+      return res.render('ventas/new', {
+        options,
+        venta: req.body,
+        productos: productosArray
+      });
+    }
+
+    // Validate electronic payments
+    if (mediodepago === '2' || mediodepago === '3' || mediodepago === '4') {
+      if (!noperacion || noperacion.trim() === '') {
+        req.flash('error', 'Número de operación requerido para pagos electrónicos');
+        return res.render('ventas/new', {
           options,
           venta: req.body,
-          productos: []
+          productos: productosArray
         });
       }
-  
-      // Validate electronic payments
-      if (mediodepago === '2' || mediodepago === '3' || mediodepago === '4') {
-        if (!noperacion || noperacion.trim() === '') {
-          req.flash('error', 'Número de operación requerido para pagos electrónicos');
-          return res.render('ventas/new', {
-            options,
-            venta: req.body,
-            productos: productosArray
-          });
-        }
-      }
-  
-      // Validate mixed payment
-      if (mediodepago === '5') {
-        try {
-          const mixedData = JSON.parse(payment_details);
-          
-          // Validate required fields
-          if (!mixedData.efectivo || !mixedData.electronico || !mixedData.metodo_electronico) {
-            req.flash('error', 'Datos de pago mixto incompletos');
-            return res.render('ventas/new', {
-              options,
-              venta: req.body,
-              productos: productosArray
-            });
-          }
-          
-          // ✨ CAMBIO AQUÍ: Asigna el valor del número de operación a la variable 'noperacion' ✨
-          noperacion = mixedData.operacion_electronica || '';
-          
-          // ✨ CAMBIO OPCIONAL: También puedes actualizar el objeto req.body
-          req.body.noperacion = noperacion;
-  
-        } catch (e) {
-          req.flash('error', 'Formato inválido para pago mixto');
-          return res.render('ventas/new', {
-            options,
-            venta: req.body,
-            productos: productosArray
-          });
-        }
-      }
-    
-      // For cash payments (mediodepago === '1'), no noperacion validation is needed
-    
-      // Validate products
-      for (const producto of productosArray) {
-        if (!producto.id_producto || !producto.cantidad) {
-          req.flash('error', 'Datos de producto incompletos');
-          return res.render('ventas/new', {
-            options,
-            venta: req.body,
-            productos: productosArray
-          });
-        }
-  
-        try {
-          // Check stock availability
-          const stock = await stockService.getStockByProducto(producto.id_producto);
-          if (stock.cantidad < producto.cantidad) {
-            req.flash('error', `No hay suficiente stock para ${producto.nombre}`);
-            return res.render('ventas/new', {
-              options,
-              venta: req.body,
-              productos: productosArray
-            });
-          }
-  
-          // Verify price exists
-          const [price] = await ventaService.getProductPrice(producto.id_producto);
-          if (!price || price.length === 0) {
-            req.flash('error', `No se encontró precio para ${producto.nombre}`);
-            return res.render('ventas/new', {
-              options,
-              venta: req.body,
-              productos: productosArray
-            });
-          }
-        } catch (err) {
-          console.error('Validation error:', err);
-          req.flash('error', 'Error al validar los datos');
-          return res.render('ventas/new', {
-            options,
-            venta: req.body,
-            productos: productosArray
-          });
-        }
-      }
-    
-      // ✨ CAMBIO: Ahora `noperacion` y `payment_details` ya tienen el valor correcto.
-      const ventaId = await ventaService.createVenta({
-        dnivend,
-        dnicomp,
-        fecha: fecha || new Date().toISOString().split('T')[0],
-        mediodepago,
-        noperacion, // <-- El valor de `noperacion` es ahora el correcto
-        payment_details,
-        productos: productosArray
-      })
-      
-      req.flash('success', `Venta #${ventaId} registrada correctamente`);
-      res.redirect('/ventas');
-    } catch (err) {
-      next(err);
     }
-  // Validate discount
-if (descuento < 0) {
-  req.flash('error', 'El descuento no puede ser negativo');
-  return res.render('ventas/new', {
-    options,
-    venta: req.body,
-    productos: productosArray
-  });
-}
 
-// Calculate total before discount to validate
-let totalBeforeDiscount = 0;
-for (const producto of productosArray) {
-  const [price] = await ventaService.getProductPrice(producto.id_producto);
-  totalBeforeDiscount += price[0].precio * producto.cantidad;
-}
+    // Validate mixed payment
+    if (mediodepago === '5') {
+      try {
+        const mixedData = JSON.parse(payment_details);
+        
+        // Validate required fields
+        if (!mixedData.efectivo || !mixedData.electronico || !mixedData.metodo_electronico) {
+          req.flash('error', 'Datos de pago mixto incompletos');
+          return res.render('ventas/new', {
+            options,
+            venta: req.body,
+            productos: productosArray
+          });
+        }
+        
+        noperacion = mixedData.operacion_electronica || '';
+        req.body.noperacion = noperacion;
 
-if (descuento > totalBeforeDiscount) {
-  req.flash('error', 'El descuento no puede ser mayor al total de la venta');
-  return res.render('ventas/new', {
-    options,
-    venta: req.body,
-    productos: productosArray
-  });
-}
+      } catch (e) {
+        req.flash('error', 'Formato inválido para pago mixto');
+        return res.render('ventas/new', {
+          options,
+          venta: req.body,
+          productos: productosArray
+        });
+      }
+    }
+  
+    // For cash payments (mediodepago === '1'), no noperacion validation is needed
+  
+    // Validate products
+    for (const producto of productosArray) {
+      if (!producto.id_producto || !producto.cantidad) {
+        req.flash('error', 'Datos de producto incompletos');
+        return res.render('ventas/new', {
+          options,
+          venta: req.body,
+          productos: productosArray
+        });
+      }
 
-// Pass discount to service
-const ventaId = await ventaService.createVenta({
-  dnivend,
-  dnicomp,
-  fecha: fecha || new Date().toISOString().split('T')[0],
-  mediodepago,
-  noperacion,
-  payment_details,
-  productos: productosArray,
-  descuento: parseFloat(descuento) || 0  // Add discount
-});
-  },
+      try {
+        // Check stock availability
+        const stock = await stockService.getStockByProducto(producto.id_producto);
+        if (stock.cantidad < producto.cantidad) {
+          req.flash('error', `No hay suficiente stock para ${producto.nombre}`);
+          return res.render('ventas/new', {
+            options,
+            venta: req.body,
+            productos: productosArray
+          });
+        }
+
+        // Verify price exists
+        const [price] = await ventaService.getProductPrice(producto.id_producto);
+        if (!price || price.length === 0) {
+          req.flash('error', `No se encontró precio para ${producto.nombre}`);
+          return res.render('ventas/new', {
+            options,
+            venta: req.body,
+            productos: productosArray
+          });
+        }
+      } catch (err) {
+        console.error('Validation error:', err);
+        req.flash('error', 'Error al validar los datos');
+        return res.render('ventas/new', {
+          options,
+          venta: req.body,
+          productos: productosArray
+        });
+      }
+    }
+  
+    // Create the sale with discount
+    const ventaId = await ventaService.createVenta({
+      dnivend,
+      dnicomp,
+      fecha: fecha || new Date().toISOString().split('T')[0],
+      mediodepago,
+      noperacion,
+      payment_details,
+      productos: productosArray,
+      descuento: parseFloat(descuento) || 0
+    });
+    
+    req.flash('success', `Venta #${ventaId} registrada correctamente`);
+    res.redirect('/ventas');
+  } catch (err) {
+    next(err);
+  }
+},
   
   // Get sale details
   getVentaDetails: async (req, res, next) => {
