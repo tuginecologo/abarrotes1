@@ -22,19 +22,19 @@
         <option value="">Seleccionar producto</option>
         <% options.productos.forEach(producto => { %>
           <% if (producto.cantidad > 0) { %>
-            <option value="<%= producto.id_producto %>" 
-                    data-precio="<%= producto.precio %>"
-                    data-stock="<%= producto.cantidad %>"
-                    data-nombre="<%= producto.nombre %>"
-                    data-variante="<%= producto.variante || '' %>"
-                    data-marca="<%= producto.marca || '' %>"
-                    data-descripcion="<%= producto.descripcion || '' %>">
-              <%= producto.id_producto %> - <%= producto.nombre %> 
-              <% if (producto.variante) { %>| Variante: <%= producto.variante %><% } %>
-              <% if (producto.marca) { %>| Marca: <%= producto.marca %><% } %>
-              <% if (producto.descripcion) { %>| Desc: <%= producto.descripcion %><% } %>
-              (S/ <%= Number(producto.precio).toFixed(2) %>, Stock: <%= producto.cantidad %>)
-            </option>
+<option value="<%= producto.id_producto %>" 
+        data-precio="<%= producto.precio %>"
+        data-stock="<%= producto.cantidad %>"
+        data-nombre="<%= producto.nombre %>"
+        data-variante="<%= producto.variante || '' %>"
+        data-marca="<%= producto.marca || '' %>"
+        data-descripcion="<%= producto.descripcion || '' %>">
+  <%= producto.id_producto %> - <%= producto.nombre %> 
+  <% if (producto.variante) { %>| Variante: <%= producto.variante %><% } %>
+  <% if (producto.marca) { %>| Marca: <%= producto.marca %><% } %>
+  <% if (producto.descripcion) { %>| Desc: <%= producto.descripcion %><% } %>
+  (S/ <%= Number(producto.precio).toFixed(2) %>, Stock: <%= producto.cantidad %>)
+</option>
           <% } %>
         <% }) %>
       </select>

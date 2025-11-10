@@ -18,13 +18,13 @@ getDropdownOptions: async () => {
     const [clientes, empleados, productos] = await Promise.all([
       ventaRepository.getClientes(),
       ventaRepository.getEmpleados(),
-      // Use the same stock calculation as the stock view BUT include marca
       pool.query(`
         SELECT 
           p.id_producto, 
           p.nombre, 
           p.variante, 
-          p.marca,  -- Just the column name, no JavaScript comments
+          p.marca,
+          p.descripcion,
           COALESCE(pr.precio, 0) as precio,
           COALESCE(
             (SELECT SUM(cantidad) FROM recepcion WHERE id_producto = p.id_producto), 
@@ -43,18 +43,21 @@ getDropdownOptions: async () => {
              JOIN venta_mod vm ON dvm.id_venta_mod = vm.id_venta_mod
              WHERE dvm.id_producto = p.id_producto),
             0
+          ) -
+          COALESCE(
+            (SELECT SUM(di.cantidad)
+             FROM detalle_incidencia di
+             WHERE di.id_producto = p.id_producto),
+            0
           ) as cantidad
         FROM producto p
         LEFT JOIN precio pr ON p.id_producto = pr.id_producto
-        WHERE EXISTS (
-          SELECT 1 FROM stock WHERE id_producto = p.id_producto
-        )
+        HAVING cantidad > 0
         ORDER BY p.nombre
       `)
     ]);
 
-    // Filter out products with zero or negative stock
-    const filteredProducts = productos[0].filter(p => p.cantidad > 0);
+    const filteredProducts = productos[0];
 
     return {
       clientes,
@@ -62,7 +65,8 @@ getDropdownOptions: async () => {
       productos: filteredProducts.map(p => ({
         ...p,
         precio: Number(p.precio) || 0,
-        marca: p.marca || ''  // Ensure marca is included
+        marca: p.marca || '',
+        descripcion: p.descripcion || ''
       }))
     };
   } catch (error) {
