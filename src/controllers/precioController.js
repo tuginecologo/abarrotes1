@@ -3,22 +3,36 @@ const dateFormatter = require('../helpers/dateFormatter');
 
 module.exports = {
   // List public products
-  listPrecios: async (req, res, next) => {
-    try {
-      const { page = 1, limit = 10, q = '' } = req.query;
-      const result = await precioService.getPrecios(parseInt(page), parseInt(limit), q);
+listPrecios: async (req, res, next) => {
+  try {
+    const { page = 1, limit = 10, q = '', id = '' } = req.query;
+    let result;
+    let notFound = false;
 
-      res.render('precio/list', {
-        productos: result.productos,
-        currentPage: parseInt(page),
-        totalPages: result.totalPages,
-        searchQuery: q,
-        dateFormatter
-      });
-    } catch (err) {
-      next(err);
+    if (id) {
+      // Búsqueda por ID exacto (para el escáner)
+      result = await precioService.getPrecioByIdExacto(id, parseInt(page), parseInt(limit));
+      if (!result.productos || result.productos.length === 0) {
+        notFound = true;
+      }
+    } else {
+      // Búsqueda por texto (nombre, descripción, etc.)
+      result = await precioService.getPrecios(parseInt(page), parseInt(limit), q);
     }
-  },
+
+    res.render('precio/list', {
+      productos: result.productos || [],
+      currentPage: parseInt(page),
+      totalPages: result.totalPages || 0,
+      searchQuery: q || '',
+      idSearch: id || '',
+      notFound: notFound,
+      dateFormatter
+    });
+  } catch (err) {
+    next(err);
+  }
+},
 
   // Show form to add new public product
   showNewForm: async (req, res, next) => {

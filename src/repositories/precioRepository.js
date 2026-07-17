@@ -38,6 +38,39 @@ getPrecios: async (page = 1, limit = 10, search = '') => {
   };
 },
 
+getPrecioByIdExacto: async (id, page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+  const [rows] = await pool.query(
+    `SELECT pp.id_precio, pp.precio, 
+            p.id_producto, p.nombre, p.descripcion, p.variante, p.marca,
+            IFNULL(s.cantidad, 0) as stock
+     FROM precio pp
+     JOIN producto p ON pp.id_producto = p.id_producto
+     LEFT JOIN (
+       SELECT id_producto, SUM(cantidad) as cantidad 
+       FROM stock 
+       GROUP BY id_producto
+     ) s ON p.id_producto = s.id_producto
+     WHERE p.id_producto = ?
+     ORDER BY p.nombre
+     LIMIT ? OFFSET ?`,
+    [String(id), limit, offset]
+  );
+  const [count] = await pool.query(
+    `SELECT COUNT(*) as total
+     FROM precio pp
+     JOIN producto p ON pp.id_producto = p.id_producto
+     WHERE p.id_producto = ?`,
+    [String(id)]
+  );
+  return { 
+    productos: rows, 
+    total: count[0].total,
+    page,
+    totalPages: Math.ceil(count[0].total / limit)
+  };
+},
+
 // Get single public product by ID
 getPrecioById: async (id) => {
   const [rows] = await pool.query(

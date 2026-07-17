@@ -24,6 +24,22 @@ module.exports = {
     return { rows, total };
   },
 
+  // productoRepository.js - agregar después de getProducts
+getProductByIdExacto: async (id, page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+  const idClean = String(id).trim();  // Limpiar espacios
+  const [rows] = await pool.query(
+    'SELECT * FROM producto WHERE TRIM(id_producto) = ? LIMIT ? OFFSET ?',
+    [idClean, limit, offset]
+  );
+  const [count] = await pool.query(
+    'SELECT COUNT(*) as total FROM producto WHERE TRIM(id_producto) = ?',
+    [idClean]
+  );
+  console.log(`Búsqueda por ID: "${idClean}", filas encontradas: ${rows.length}`);
+  return { rows, total: count[0].total };
+},
+
 // Create a new product
 createProduct: async (productData) => {
   try {

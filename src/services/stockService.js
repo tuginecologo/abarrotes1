@@ -35,6 +35,11 @@ initializeStock: async () => {
     return await stockRepository.getStock(page, limit, search);
   },
 
+  // stockService.js - agrega este método después de getStock
+getStockByIdExacto: async (id, page, limit) => {
+  return await stockRepository.getStockByIdExacto(id, page, limit);
+},
+
   // Update stock (add or remove quantity)
   updateStock: async (id_producto, cantidad, operation = 'add', { connection } = {}) => {
     const conn = connection || await pool.getConnection();

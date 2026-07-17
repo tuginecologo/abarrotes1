@@ -17,7 +17,7 @@ getRecepciones: async (page = 1, limit = 10, search = '') => {
      JOIN empleado e ON r.dni = e.dni
      WHERE p.nombre LIKE ? OR pr.nombre LIKE ? 
      OR CONCAT(e.nombres, ' ', e.apellidos) LIKE ? OR r.observacion LIKE ?
-     ORDER BY r.fecha DESC
+     ORDER BY r.id_recepcion DESC  -- <-- Cambio aquí
      LIMIT ? OFFSET ?`,
     [`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, limit, offset]
   );
@@ -109,7 +109,8 @@ getAllRecepciones: async () => {
      JOIN producto p ON r.id_producto = p.id_producto
      JOIN proveedor pr ON r.id_proveedor = pr.id_proveedor
      JOIN empleado e ON r.dni = e.dni
-     ORDER BY r.fecha DESC`
+     ORDER BY r.id_recepcion DESC  -- <-- Cambio aquí
+     LIMIT ? OFFSET ?`
   );
   return rows;
 },

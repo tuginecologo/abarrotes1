@@ -2,24 +2,43 @@
 const productoService = require('../services/productoService');
 
 module.exports = {
-  listProducts: async (req, res, next) => {
-    try {
-      const { page = 1, limit = 10, q = '', success, error } = req.query;
-      const result = await productoService.getProducts(parseInt(page), parseInt(limit), q);
+// productoController.js - listProducts
+listProducts: async (req, res, next) => {
+  try {
+    const { page = 1, limit = 10, q = '', id = '', success, error } = req.query;
+    let result;
+    let notFound = false;
 
-      res.render('productos/list', {
-        products: result.products,
-        currentPage: parseInt(page),
-        totalPages: result.totalPages,
-        searchQuery: q,
-        success_msg: success,
-        error_msg: error,
-        formatDate: (date) => new Date(date).toLocaleDateString('es-PE')
-      });
-    } catch (err) {
-      next(err);
+    if (id) {
+      // Búsqueda por ID exacto (para el escáner)
+      result = await productoService.getProductByIdExacto(id, parseInt(page), parseInt(limit));
+      console.log('Resultado de getProductByIdExacto:', result); // <-- Agrega esto
+      console.log('ID recibido:', id);
+      console.log('Resultado completo:', result);
+      console.log('Productos encontrados:', result.products);
+      if (!result.products || result.products.length === 0) {
+        notFound = true;
+      }
+    } else {
+      // Búsqueda por texto (nombre, marca, descripción)
+      result = await productoService.getProducts(parseInt(page), parseInt(limit), q);
     }
-  },
+
+    res.render('productos/list', {
+      products: result.products || [],
+      currentPage: parseInt(page),
+      totalPages: result.totalPages || 0,
+      searchQuery: q || '',
+      idSearch: id || '',
+      notFound: notFound,
+      success_msg: success,
+      error_msg: error,
+      formatDate: (date) => new Date(date).toLocaleDateString('es-PE')
+    });
+  } catch (err) {
+    next(err);
+  }
+},
 
   showNewForm: (req, res) => {
     res.render('productos/new');

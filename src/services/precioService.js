@@ -9,6 +9,10 @@ module.exports = {
     return await precioRepository.getPrecios(page, limit, search);
   },
 
+  getPrecioByIdExacto: async (id, page, limit) => {
+  return await precioRepository.getPrecioByIdExacto(id, page, limit);
+},
+
   // Get single public product
   getPrecioById: async (id) => {
     const producto = await precioRepository.getPrecioById(id);

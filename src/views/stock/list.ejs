@@ -17,6 +17,13 @@
 </div>
 </div>
 
+<!-- Mostrar Todos: visible cuando hay búsqueda por ID -->
+<% if (idSearch && idSearch.trim() !== '') { %>
+  <a href="/stock" class="btn" style="margin-bottom: 15px;">
+    <i class="fas fa-eye"></i> Mostrar Todos los Productos
+  </a>
+<% } %>
+
 <form action="/stock" method="GET" class="search-form">
   <input type="text" name="q" value="<%= searchQuery %>" placeholder="Buscar...">
   <button type="submit">Buscar</button>
@@ -50,7 +57,16 @@
       <th>Estado</th>
     </tr>
   </thead>
-  <tbody>
+<tbody>
+  <% if (typeof notFound !== 'undefined' && notFound) { %>
+    <tr>
+      <td colspan="8" class="text-center" style="color: #ff6b6b; font-weight: bold;">
+        <i class="fas fa-exclamation-triangle"></i> No se encontró ningún producto con el ID: <%= idSearch %>
+        <br>
+        <small>Verifique que el código de barras sea correcto.</small>
+      </td>
+    </tr>
+  <% } else if (stock && stock.length > 0) { %>
     <% stock.forEach(item => { %>
       <tr data-product-id="<%= item.id_producto %>">
         <td><%= item.id_producto %></td>
@@ -77,7 +93,12 @@
         </td>
       </tr>
     <% }) %>
-  </tbody>
+  <% } else { %>
+    <tr>
+      <td colspan="8" class="text-center">No se encontraron productos en el inventario</td>
+    </tr>
+  <% } %>
+</tbody>
 </table>
 
 <div class="pagination">
@@ -122,42 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       const productId = this.value.trim();
       
-      if (productId) {
-        let found = false;
-        
-        // Hide all rows first
-        allRows.forEach(row => {
-          row.style.display = 'none';
-        });
-        
-        // Search for the specific product
-        for (let row of allRows) {
-          const rowProductId = row.getAttribute('data-product-id');
-          
-          if (rowProductId === productId) {
-            // Show only the found product
-            row.style.display = '';
-            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            found = true;
-            
-            // Show the "Show All" button
-            showAllBtn.style.display = 'inline-block';
-            break;
-          }
-        }
-        
-        if (!found) {
-          // If not found, show all products and show alert
-          allRows.forEach(row => {
-            row.style.display = '';
-          });
-          showAllBtn.style.display = 'none';
-          alert('No se encontró el producto con ID: ' + productId);
-        }
-        
-        // Clear the field and focus again for next scan
-        this.value = '';
-        this.focus();
+if (productId) {
+        window.location.href = `/stock?id=${encodeURIComponent(productId)}`;
       }
     }
   });

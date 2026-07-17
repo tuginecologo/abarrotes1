@@ -72,6 +72,68 @@ getStock: async (page = 1, limit = 10, search = '') => {
     throw err;
   }
 },
+
+// stockRepository.js - agrega este método después de getStock
+getStockByIdExacto: async (id, page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+  
+  // Misma consulta que getStock pero filtrada por ID exacto
+  const [rows] = await pool.query(
+    `SELECT 
+        p.id_producto, 
+        p.nombre as producto_nombre, 
+        p.descripcion, 
+        p.variante,
+        p.marca,
+        COALESCE(rcp.total_recepcion, 0) - 
+        COALESCE(vnt.total_ventas, 0) +
+        COALESCE(dev.total_devoluciones, 0) -
+        COALESCE(inc.total_incidencias, 0) as cantidad,
+        pr.precio as precio_publico
+     FROM producto p
+     LEFT JOIN precio pr ON p.id_producto = pr.id_producto
+     LEFT JOIN (
+       SELECT id_producto, SUM(cantidad) as total_recepcion
+       FROM recepcion
+       GROUP BY id_producto
+     ) rcp ON p.id_producto = rcp.id_producto
+     LEFT JOIN (
+       SELECT dv.id_producto, SUM(dv.cantidad) as total_ventas
+       FROM detalle_venta dv
+       JOIN venta v ON dv.id_venta = v.id_venta
+       GROUP BY dv.id_producto
+     ) vnt ON p.id_producto = vnt.id_producto
+     LEFT JOIN (
+       SELECT dvm.id_producto, SUM(dvm.cantidad) as total_devoluciones
+       FROM detalle_venta_mod dvm
+       JOIN venta_mod vm ON dvm.id_venta_mod = vm.id_venta_mod
+       GROUP BY dvm.id_producto
+     ) dev ON p.id_producto = dev.id_producto
+     LEFT JOIN (
+       SELECT id_producto, SUM(cantidad) as total_incidencias
+       FROM detalle_incidencia
+       GROUP BY id_producto
+     ) inc ON p.id_producto = inc.id_producto
+     WHERE p.id_producto = ?
+     ORDER BY p.nombre
+     LIMIT ? OFFSET ?`,
+    [String(id), limit, offset]
+  );
+  
+  const [count] = await pool.query(
+    `SELECT COUNT(*) as total
+     FROM producto p
+     WHERE p.id_producto = ?`,
+    [String(id)]
+  );
+  
+  return { 
+    stock: rows, 
+    total: count[0].total,
+    page,
+    totalPages: Math.ceil(count[0].total / limit)
+  };
+},
   // Update stock (add or remove quantity)
   updateStock: async (id_producto, cantidad, operation = 'add', { connection } = {}) => {
     const conn = connection || await pool.getConnection();

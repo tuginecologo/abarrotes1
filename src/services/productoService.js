@@ -15,6 +15,16 @@ module.exports = {
     };
   },
 
+  // productoService.js - agregar después de getProducts
+// productoService.js
+getProductByIdExacto: async (id, page, limit) => {
+  const { rows, total } = await productoRepository.getProductByIdExacto(id, page, limit);
+  return {
+    products: rows,
+    totalPages: Math.ceil(total / limit)
+  };
+},
+
   // Get single product
   getProductById: async (id) => {
     return await productoRepository.getProductById(id);
