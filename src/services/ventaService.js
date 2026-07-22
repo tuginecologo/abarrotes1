@@ -191,14 +191,17 @@ module.exports = {
       }
       
       // Get individual discounts for each detail
-      for (const detalle of venta.detalles) {
-        const [discountRows] = await pool.query(
-          'SELECT monto_descuento FROM descuento_individual WHERE id_detalle = ?',
-          [detalle.id_detalle]
-        );
-        detalle.descuento = discountRows.length > 0 ? discountRows[0].monto_descuento : 0;
-        detalle.precio_original = detalle.precio + detalle.descuento; // Reconstruct original price
-      }
+// En ventaService.js - dentro de getVentaDetails
+for (const detalle of venta.detalles) {
+  const [discountRows] = await pool.query(
+    'SELECT monto_descuento FROM descuento_individual WHERE id_detalle = ?',
+    [detalle.id_detalle]
+  );
+  // Convertir a número
+  detalle.precio = Number(detalle.precio);
+  detalle.descuento = discountRows.length > 0 ? Number(discountRows[0].monto_descuento) : 0;
+  detalle.precio_original = detalle.precio + detalle.descuento;
+}
       
       return venta;
     } catch (error) {
