@@ -44,9 +44,7 @@
             <% if (venta.noperacion) { %> (Op: <%= venta.noperacion %>) <% } %>
           <% } %>
         </p>
-        <!-- Add after payment method display -->
-        <p><strong>Descuento:</strong> S/ <%= (Number(venta.descuento) || 0).toFixed(2) %></p>
-        <p><strong>Total sin descuento:</strong> S/ <%= (Number(venta.total) + (Number(venta.descuento) || 0)).toFixed(2) %></p>
+        <p><strong>Total:</strong> S/ <%= (Number(venta.total) || 0).toFixed(2) %></p>
       </div>
     </div>
   </div>
@@ -61,19 +59,26 @@
       <th>Marca</th>
       <th>Variante</th>
       <th>Descripción</th>
-      <th>Precio Unitario</th>
+      <th>Precio Original</th>
+      <th>Descuento</th>
+      <th>Precio Final</th>
       <th>Cantidad</th>
       <th>Subtotal</th>
     </tr>
   </thead>
   <tbody>
-    <% venta.detalles.forEach(detalle => { %>
+    <% venta.detalles.forEach(detalle => { 
+      const descuento = detalle.descuento || 0;
+      const precioOriginal = detalle.precio_original || detalle.precio + descuento;
+    %>
       <tr>
         <td><%= detalle.id_producto %></td>
         <td><%= detalle.producto_nombre %></td>
         <td><%= detalle.marca || 'N/A' %></td>
         <td><%= detalle.variante || 'N/A' %></td>
         <td><%= detalle.descripcion || 'N/A' %></td>
+        <td>S/ <%= precioOriginal.toFixed(2) %></td>
+        <td class="text-danger"><%= descuento > 0 ? 'S/ ' + descuento.toFixed(2) : '-' %></td>
         <td>S/ <%= detalle.precio.toFixed(2) %></td>
         <td><%= detalle.cantidad %></td>
         <td>S/ <%= (detalle.precio * detalle.cantidad).toFixed(2) %></td>
@@ -82,7 +87,7 @@
   </tbody>
   <tfoot>
     <tr>
-      <th colspan="7">Total</th>
+      <th colspan="9">Total</th>
       <th>S/ <%= venta.total.toFixed(2) %></th>
     </tr>
   </tfoot>

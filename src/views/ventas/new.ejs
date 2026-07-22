@@ -17,24 +17,24 @@
 <form id="ventaForm" action="/ventas/nueva" method="POST">
   <h3>Productos</h3>
   <div class="row mb-3">
-    <div class="col-md-6">
+    <div class="col-md-4">
       <select class="form-control" id="productoSelect" style="width: 100%; max-width: 600px;">
         <option value="">Seleccionar producto</option>
         <% options.productos.forEach(producto => { %>
           <% if (producto.cantidad > 0) { %>
-<option value="<%= producto.id_producto %>" 
-        data-precio="<%= producto.precio %>"
-        data-stock="<%= producto.cantidad %>"
-        data-nombre="<%= producto.nombre %>"
-        data-variante="<%= producto.variante || '' %>"
-        data-marca="<%= producto.marca || '' %>"
-        data-descripcion="<%= producto.descripcion || '' %>">
-  <%= producto.id_producto %> - <%= producto.nombre %> 
-  <% if (producto.variante) { %>| Variante: <%= producto.variante %><% } %>
-  <% if (producto.marca) { %>| Marca: <%= producto.marca %><% } %>
-  <% if (producto.descripcion) { %>| Desc: <%= producto.descripcion %><% } %>
-  (S/ <%= Number(producto.precio).toFixed(2) %>, Stock: <%= producto.cantidad %>)
-</option>
+            <option value="<%= producto.id_producto %>" 
+                    data-precio="<%= producto.precio %>"
+                    data-stock="<%= producto.cantidad %>"
+                    data-nombre="<%= producto.nombre %>"
+                    data-variante="<%= producto.variante || '' %>"
+                    data-marca="<%= producto.marca || '' %>"
+                    data-descripcion="<%= producto.descripcion || '' %>">
+              <%= producto.id_producto %> - <%= producto.nombre %> 
+              <% if (producto.variante) { %>| Variante: <%= producto.variante %><% } %>
+              <% if (producto.marca) { %>| Marca: <%= producto.marca %><% } %>
+              <% if (producto.descripcion) { %>| Desc: <%= producto.descripcion %><% } %>
+              (S/ <%= Number(producto.precio).toFixed(2) %>, Stock: <%= producto.cantidad %>)
+            </option>
           <% } %>
         <% }) %>
       </select>
@@ -42,7 +42,10 @@
     <div class="col-md-2">
       <input type="number" class="form-control" id="productoCantidad" min="1" value="1" placeholder="Cantidad">
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
+      <input type="number" class="form-control" id="productoDescuento" min="0" step="0.01" value="0" placeholder="Descuento (S/)">
+    </div>
+    <div class="col-md-3">
       <button type="button" class="btn btn-primary" id="agregarProducto">
         <i class="fas fa-plus"></i> Agregar
       </button>
@@ -61,16 +64,16 @@
         <th>Marca</th>
         <th>Variante</th>
         <th>Precio Unitario</th>
+        <th>Descuento</th>
         <th>Cantidad</th>
         <th>Subtotal</th>
         <th>Acciones</th>
       </tr>
     </thead>
-    <tbody>
-      </tbody>
+    <tbody></tbody>
     <tfoot>
       <tr>
-        <th colspan="6">Total</th>
+        <th colspan="7">Total</th>
         <th id="totalVenta">S/ 0.00</th>
         <th></th>
       </tr>
@@ -84,24 +87,24 @@
       <div class="form-group">
         <label for="dnicomp">Cliente</label>
         <select class="form-control" id="dnicomp" name="dnicomp" required>
-            <option value="">Seleccionar cliente</option>
-            <% options.clientes.forEach(cliente => { %>
-              <option value="<%= cliente.dni %>"><%= cliente.nombre %></option>
-            <% }) %>
-          </select>
+          <option value="">Seleccionar cliente</option>
+          <% options.clientes.forEach(cliente => { %>
+            <option value="<%= cliente.dni %>"><%= cliente.nombre %></option>
+          <% }) %>
+        </select>
       </div>
     </div>
     <div class="col-md-6">
       <div class="form-group">
         <label for="dnivend">Vendedor</label>
         <select class="form-control" id="dnivend" name="dnivend" required>
-            <option value="">Seleccionar vendedor</option>
-            <% options.empleados.forEach(empleado => { %>
-              <option value="<%= empleado.dni %>" <%= venta.dnivend === empleado.dni ? 'selected' : '' %>>
-                <%= empleado.nombre %>
-              </option>
-            <% }) %>
-          </select>
+          <option value="">Seleccionar vendedor</option>
+          <% options.empleados.forEach(empleado => { %>
+            <option value="<%= empleado.dni %>" <%= venta.dnivend === empleado.dni ? 'selected' : '' %>>
+              <%= empleado.nombre %>
+            </option>
+          <% }) %>
+        </select>
       </div>
     </div>
   </div>
@@ -156,7 +159,6 @@
       <input type="text" class="form-control" id="electronicOperation" name="electronicOperation">
     </div>
 
-    
     <div class="form-group">
       <label>Resumen de Pago:</label>
       <div class="alert alert-info" id="paymentSummary">
@@ -169,12 +171,9 @@
     <label for="noperacion">Número de Operación</label>
     <input type="text" class="form-control" id="noperacion" name="noperacion">
   </div>
-    <!-- Add after payment method fields -->
-    <div class="form-group">
-      <label for="descuento">Descuento (S/)</label>
-      <input type="number" class="form-control" id="descuento" name="descuento" 
-            step="0.01" min="0" value="0" onchange="actualizarTotal()">
-    </div>
+
+  <!-- Descuento global eliminado -->
+
   <button type="submit" class="btn btn-success">
     <i class="fas fa-save"></i> Registrar Venta
   </button>
@@ -182,71 +181,53 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Get all elements
   const barcodeScanner = document.getElementById('barcode-scanner');
   const productoSelect = document.getElementById('productoSelect');
   const cantidadInput = document.getElementById('productoCantidad');
+  const descuentoInput = document.getElementById('productoDescuento');
   const mediodepagoSelect = document.getElementById('mediodepago');
   const noperacionInput = document.getElementById('noperacion');
   const efectivoAmount = document.getElementById('efectivoAmount');
   const electronicMethod = document.getElementById('electronicMethod');
   const electronicOperation = document.getElementById('electronicOperation');
   
-  // Auto-focus on barcode scanner field
   barcodeScanner.focus();
   
-  // Set initial state of payment fields
   const initialPaymentMethod = mediodepagoSelect.value;
-  
   if (initialPaymentMethod !== '2' && initialPaymentMethod !== '3' && initialPaymentMethod !== '4') {
     noperacionInput.removeAttribute('required');
   }
-  
   if (initialPaymentMethod !== '5') {
     efectivoAmount.removeAttribute('required');
     electronicMethod.removeAttribute('required');
     electronicOperation.removeAttribute('required');
   }
 
-  // Barcode scanner functionality
+  // Barcode scanner
   barcodeScanner.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
       const productId = this.value.trim();
-      
       if (productId) {
-        // Search for product in dropdown
         const options = productoSelect.options;
         let found = false;
-        
         for (let i = 0; i < options.length; i++) {
-          const option = options[i];
-          const optionProductId = option.value;
-          
-          if (optionProductId === productId) {
-            productoSelect.value = option.value;
+          if (options[i].value === productId) {
+            productoSelect.value = options[i].value;
             found = true;
-            
-            // Automatically add the product with default quantity (1)
             agregarProductoAlCarrito();
-            
             break;
           }
         }
-
         if (!found) {
           alert('No se encontró el producto con ID: ' + productId);
         }
-        
-        // Clear the field and focus again for next scan
         this.value = '';
         this.focus();
       }
     }
   });
 
-
-  // Function to add product to cart
   function agregarProductoAlCarrito() {
     if (!productoSelect.value) {
       alert('Seleccione un producto');
@@ -261,6 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const precio = parseFloat(selectedOption.dataset.precio);
     const cantidad = parseInt(cantidadInput.value);
     const stock = parseInt(selectedOption.dataset.stock);
+    const descuento = parseFloat(descuentoInput.value) || 0;
 
     if (cantidad <= 0) {
       alert('La cantidad debe ser mayor a 0');
@@ -272,22 +254,25 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    // Verificar si el producto ya está en la tabla
+    if (descuento > precio) {
+      alert(`El descuento (${descuento}) no puede ser mayor al precio (${precio}) del producto`);
+      return;
+    }
+
+    const precioFinal = precio - descuento;
+    const subtotal = precioFinal * cantidad;
+
     const existingRow = document.querySelector(`#productosTable tr[data-id="${idProducto}"]`);
     if (existingRow) {
       const existingCantidad = parseInt(existingRow.querySelector('.cantidad').textContent);
       const newCantidad = existingCantidad + cantidad;
-      
       if (newCantidad > stock) {
         alert(`No hay suficiente stock para esta cantidad adicional. Disponible: ${stock - existingCantidad}`);
         return;
       }
-      
-      
       existingRow.querySelector('.cantidad').textContent = newCantidad;
-      existingRow.querySelector('.subtotal').textContent = `S/ ${(precio * newCantidad).toFixed(2)}`;
+      existingRow.querySelector('.subtotal').textContent = `S/ ${(precioFinal * newCantidad).toFixed(2)}`;
     } else {
-      // Agregar nueva fila
       const tbody = document.querySelector('#productosTable tbody');
       const row = document.createElement('tr');
       row.dataset.id = idProducto;
@@ -297,9 +282,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <td>${nombreProducto}</td>
         <td>${marca}</td>
         <td>${variante}</td>
-        <td class="precio">S/ ${precio.toFixed(2)}</td>
+        <td class="precio-original">S/ ${precio.toFixed(2)}</td>
+        <td class="descuento">S/ ${descuento.toFixed(2)}</td>
         <td class="cantidad">${cantidad}</td>
-        <td class="subtotal">S/ ${(precio * cantidad).toFixed(2)}</td>
+        <td class="subtotal">S/ ${subtotal.toFixed(2)}</td>
         <td>
           <button type="button" class="btn btn-sm btn-danger eliminar-producto">
             <i class="fas fa-trash"></i>
@@ -310,23 +296,18 @@ document.addEventListener('DOMContentLoaded', function() {
       tbody.appendChild(row);
     }
 
-    // Actualizar total
     actualizarTotal();
-
-    // Limpiar inputs (only clear select if using barcode)
     cantidadInput.value = 1;
+    descuentoInput.value = 0;
     productoSelect.value = '';
   }
 
-  // Real-time payment calculation display
   function updatePaymentSummary() {
     const paymentMethod = mediodepagoSelect.value;
-    
     if (paymentMethod === '5') {
       const efectivoAmountValue = parseFloat(efectivoAmount.value) || 0;
       const total = parseFloat(document.getElementById('totalVenta').textContent.replace('S/ ', ''));
       const electronicAmount = total - efectivoAmountValue;
-      
       document.getElementById('paymentSummary').innerHTML = `
         Efectivo: S/ ${efectivoAmountValue.toFixed(2)} + 
         Electrónico: S/ ${electronicAmount.toFixed(2)} = 
@@ -335,19 +316,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Handle payment method change
   mediodepagoSelect.addEventListener('change', function() {
     const noperacionGroup = document.getElementById('noperacionGroup');
     const mixedPaymentGroup = document.getElementById('mixedPaymentGroup');
-    
     const isElectronic = (this.value === '2' || this.value === '3' || this.value === '4');
     const isMixed = (this.value === '5');
     
-    // Show/hide groups
     noperacionGroup.style.display = isElectronic ? 'block' : 'none';
     mixedPaymentGroup.style.display = isMixed ? 'block' : 'none';
     
-    // Clear and set required attributes
     if (isElectronic) {
       noperacionInput.setAttribute('required', 'required');
     } else {
@@ -368,7 +345,6 @@ document.addEventListener('DOMContentLoaded', function() {
       electronicOperation.value = '';
     }
     
-    // Update payment summary if mixed
     if (isMixed) {
       updatePaymentSummary();
     } else {
@@ -376,26 +352,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Handle electronic method change within mixed payment
   electronicMethod.addEventListener('change', function() {
-    const hasElectronicMethod = this.value !== '';
-    document.getElementById('mixedOperationGroup').style.display = hasElectronicMethod ? 'block' : 'none';
+    document.getElementById('mixedOperationGroup').style.display = this.value !== '' ? 'block' : 'none';
   });
 
-  // Add event listeners for real-time updates
   efectivoAmount.addEventListener('input', updatePaymentSummary);
     
-  // Validate ALL payment methods before form submission
   document.getElementById('ventaForm').addEventListener('submit', function(e) {
     const paymentMethod = mediodepagoSelect.value;
     
-    // Validate products
     const productos = Array.from(document.querySelectorAll('#productosTable tbody tr')).map(row => {
+      const precioOriginal = parseFloat(row.querySelector('.precio-original').textContent.replace('S/ ', ''));
+      const descuento = parseFloat(row.querySelector('.descuento').textContent.replace('S/ ', ''));
       return {
         id_producto: row.dataset.id,
         nombre: row.querySelector('td:nth-child(2)').textContent,
         cantidad: parseInt(row.querySelector('.cantidad').textContent),
-        precio: parseFloat(row.querySelector('.precio').textContent.replace('S/ ', ''))
+        precio: precioOriginal,
+        descuento: descuento
       };
     });
 
@@ -407,7 +381,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('productosInput').value = JSON.stringify(productos);
 
-    // Validate electronic payments
     if (paymentMethod === '2' || paymentMethod === '3' || paymentMethod === '4') {
       if (!noperacionInput.value.trim()) {
         e.preventDefault();
@@ -417,38 +390,31 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     
-    // Validate mixed payment
     if (paymentMethod === '5') {
       const efectivoAmountValue = parseFloat(efectivoAmount.value) || 0;
       const electronicMethodValue = electronicMethod.value;
       const electronicOperationValue = electronicOperation.value;
       const total = parseFloat(document.getElementById('totalVenta').textContent.replace('S/ ', ''));
       
-      // Validation
       if (!electronicMethodValue) {
         e.preventDefault();
         alert('Debe seleccionar un método electrónico para el pago mixto');
         electronicMethod.focus();
         return;
       }
-      
       if (efectivoAmountValue <= 0) {
         e.preventDefault();
         alert('El monto en efectivo debe ser mayor a 0');
         efectivoAmount.focus();
         return;
       }
-      
       const electronicAmount = total - efectivoAmountValue;
-      
-      // Validate that electronic amount is positive
       if (electronicAmount <= 0) {
         e.preventDefault();
         alert('El monto electrónico debe ser mayor a 0. Reduzca el monto en efectivo.');
         efectivoAmount.focus();
         return;
       }
-      
       if (!electronicOperationValue) {
         e.preventDefault();
         alert('Debe ingresar el número de operación para el pago electrónico');
@@ -456,7 +422,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
       }
       
-      // Store mixed payment data in payment_details field
       const mixedPaymentData = {
         efectivo: efectivoAmountValue,
         electronico: electronicAmount,
@@ -464,20 +429,13 @@ document.addEventListener('DOMContentLoaded', function() {
         operacion_electronica: electronicOperationValue
       };
       
-      // Store in payment_details field as JSON string
       document.getElementById('payment_details').value = JSON.stringify(mixedPaymentData);
-      // Store only the operation number in noperacion
       document.getElementById('noperacion').value = electronicOperationValue;
     }
-    
-    // If all validations pass, the form will submit naturally.
-    // No need for 'this.submit();'
   });
   
-  // Manejar agregar productos manualmente
   document.getElementById('agregarProducto').addEventListener('click', agregarProductoAlCarrito);
 
-  // Manejar eliminar productos
   document.addEventListener('click', function(e) {
     if (e.target.classList.contains('eliminar-producto') || e.target.closest('.eliminar-producto')) {
       e.target.closest('tr').remove();
@@ -485,26 +443,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Actualizar total
   function actualizarTotal() {
-  const subtotals = Array.from(document.querySelectorAll('.subtotal')).map(el => {
-    return parseFloat(el.textContent.replace('S/ ', ''));
-  });
-  
-  const total = subtotals.reduce((sum, current) => sum + current, 0);
-  const descuento = parseFloat(document.getElementById('descuento').value) || 0;
-  const totalConDescuento = total - descuento;
-  
-  document.getElementById('totalVenta').textContent = `S/ ${totalConDescuento.toFixed(2)}`;
-  
-  // Update payment summary if mixed payment is selected
-  if (mediodepagoSelect.value === '5') {
-    updatePaymentSummary();
+    const subtotals = Array.from(document.querySelectorAll('.subtotal')).map(el => {
+      return parseFloat(el.textContent.replace('S/ ', ''));
+    });
+    const total = subtotals.reduce((sum, current) => sum + current, 0);
+    document.getElementById('totalVenta').textContent = `S/ ${total.toFixed(2)}`;
+    
+    if (mediodepagoSelect.value === '5') {
+      updatePaymentSummary();
+    }
   }
-}
 
   document.getElementById('refreshStock').addEventListener('click', async function() {
-    const response = await fetch('/ventas/nueva');
     window.location.reload();
   });
 });
