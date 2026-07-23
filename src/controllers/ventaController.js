@@ -28,7 +28,7 @@ module.exports = {
       res.render('ventas/new', { 
         options,
         venta: {
-          dnicomp: '',
+          id_cliente: '',
           dnivend: userDni,
           productos: [],
           mediodepago: '',
@@ -43,7 +43,7 @@ module.exports = {
   // Create new sale (modified for individual discounts)
   createVenta: async (req, res, next) => {
     try {
-      const { dnicomp, dnivend, fecha, mediodepago, payment_details, productos } = req.body;
+      const { id_cliente, dnivend, fecha, mediodepago, payment_details, productos } = req.body;
       let { noperacion } = req.body;
       const options = await ventaService.getDropdownOptions();
     
@@ -180,7 +180,7 @@ module.exports = {
       // Create the sale (descuento global eliminado)
       const ventaId = await ventaService.createVenta({
         dnivend,
-        dnicomp,
+        id_cliente,
         fecha: fecha || new Date().toISOString().split('T')[0],
         mediodepago,
         noperacion,

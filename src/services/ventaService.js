@@ -100,9 +100,9 @@ module.exports = {
 
       // 1. Create venta record (sin descuento global)
       const [ventaResult] = await connection.query(
-        `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details)
+        `INSERT INTO venta (dnivend, id_cliente, fecha, mediodepago, noperacion, payment_details)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [ventaData.dnivend, ventaData.dnicomp, ventaData.fecha, 
+        [ventaData.dnivend, ventaData.id_cliente, ventaData.fecha, 
          ventaData.mediodepago, noperacionToStore, paymentDetailsToStore]
       );
       

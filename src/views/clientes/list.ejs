@@ -8,21 +8,17 @@
 
 <a href="/clientes/nuevo" class="btn">Nuevo Cliente</a>
 
-<!-- <form id="bulk-delete-form" action="/clientes/bulk-delete" method="POST" class="bulk-actions" onsubmit="return validateBulkDelete()"> -->
-  <div class="action-buttons">
-    <!-- <button type="submit" class="btn-bulk-delete">Eliminar Seleccionados</button> -->
-    <a href="/clientes/exportar" class="btn-export">
-      <i class="fas fa-file-excel"></i> Exportar a Excel
-    </a>
-    <a href="/dashboard" class="btn">Volver a Dashboard</a>
-  </div>
-</form>
+<div class="action-buttons">
+  <a href="/clientes/exportar" class="btn-export">
+    <i class="fas fa-file-excel"></i> Exportar a Excel
+  </a>
+  <a href="/dashboard" class="btn">Volver a Dashboard</a>
+</div>
 
 <table>
   <thead>
     <tr>
-      <!-- <th><input type="checkbox" id="select-all"></th> -->
-      <th>DNI</th>
+      <th>ID</th>
       <th>Nombres</th>
       <th>Apellidos</th>
       <th>Sexo</th>
@@ -32,15 +28,14 @@
   <tbody>
     <% clientes.forEach(cliente => { %>
       <tr>
-        <!-- <td><input type="checkbox" name="clienteDnis" value="<%= cliente.dni %>" form="bulk-delete-form"></td> -->
-        <td><%= cliente.dni %></td>
+        <td><%= cliente.id_cliente %></td>
         <td><%= cliente.nombres %></td>
         <td><%= cliente.apellidos %></td>
         <td><%= cliente.sexo === 'M' ? 'Masculino' : 'Femenino' %></td>
         <td class="actions">
-          <a href="/clientes/editar/<%= cliente.dni %>" class="btn-edit">Editar</a>
-          <form action="/clientes/eliminar/<%= cliente.dni %>" method="POST" style="display:inline;">
-            <button type="submit" class="btn-delete" onclick="return confirm('¿Está seguro que desea eliminar este cliente?')">Eliminar</button>
+          <a href="/clientes/editar/<%= cliente.id_cliente %>" class="btn-edit">Editar</a>
+          <form action="/clientes/eliminar/<%= cliente.id_cliente %>" method="POST" style="display:inline;">
+            <button type="submit" class="btn-delete" onclick="return confirm('¿Está seguro?')">Eliminar</button>
           </form>
         </td>
       </tr>
@@ -57,23 +52,4 @@
     <a href="/clientes?page=<%= currentPage + 1 %>&q=<%= searchQuery %>" class="page-link">Siguiente</a>
   <% } %>
 </div>
-
-<!-- <script>
-  // function validateBulkDelete() {
-  //   const checkboxes = document.querySelectorAll('input[name="clienteDnis"]:checked');
-  //   if (checkboxes.length === 0) {
-  //     alert('Por favor seleccione al menos un cliente para eliminar');
-  //     return false;
-  //   }
-  //   return confirm('¿Está seguro que desea eliminar los clientes seleccionados?');
-  // }
-
-  // document.getElementById('select-all').addEventListener('change', function(e) {
-  //   const checkboxes = document.querySelectorAll('input[name="clienteDnis"]');
-  //   checkboxes.forEach(checkbox => {
-  //     checkbox.checked = e.target.checked;
-  //   });
-  // });
-</script> -->
-
 <%- include('../partials/footer') %>

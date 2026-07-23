@@ -12,16 +12,15 @@ router.route('/clientes/nuevo')
   .get(checkAuth, checkRole(['0', '1']), clienteController.showNewForm)
   .post(checkAuth, checkRole(['0', '1']), asyncWrapper(clienteController.createCliente));
 
-// Client edit flow
-router.route('/clientes/editar/:dni')
+// Client edit flow (cambiar :dni por :id)
+router.route('/clientes/editar/:id')
   .get(checkAuth, checkRole(['0', '1']), asyncWrapper(clienteController.showEditForm))
   .post(checkAuth, checkRole(['0', '1']), asyncWrapper(clienteController.updateCliente));
 
-// Delete operations
-router.post('/clientes/eliminar/:dni', checkAuth, checkRole(['0', '1']), asyncWrapper(clienteController.deleteCliente));
-// router.post('/clientes/bulk-delete', checkAuth, checkRole(['0', '1']), asyncWrapper(clienteController.bulkDeleteClientes));
+// Delete operations (cambiar :dni por :id)
+router.post('/clientes/eliminar/:id', checkAuth, checkRole(['0', '1']), asyncWrapper(clienteController.deleteCliente));
 
-// Excel export
+// Excel export (sin cambios)
 router.get('/clientes/exportar', checkAuth, checkRole(['0', '1']), asyncWrapper(clienteController.exportToExcel));
 
 module.exports = router;

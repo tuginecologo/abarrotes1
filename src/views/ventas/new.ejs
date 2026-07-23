@@ -89,11 +89,11 @@
   <div class="row">
     <div class="col-md-6">
       <div class="form-group">
-        <label for="dnicomp">Cliente</label>
-        <select class="form-control" id="dnicomp" name="dnicomp" required>
+        <label for="id_cliente">Cliente</label>
+        <select class="form-control" id="id_cliente" name="id_cliente" required>
           <option value="">Seleccionar cliente</option>
           <% options.clientes.forEach(cliente => { %>
-            <option value="<%= cliente.dni %>"><%= cliente.nombre %></option>
+            <option value="<%= cliente.id_cliente %>"><%= cliente.id_cliente %> - <%= cliente.nombre %></option>
           <% }) %>
         </select>
       </div>
