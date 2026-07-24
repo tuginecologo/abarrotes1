@@ -18,8 +18,7 @@
         <tr>
           <td><%= deuda.id_cliente %></td>
           <td><%= deuda.nombres %> <%= deuda.apellidos %></td>
-          <td>S/ <%= deuda.total_deuda.toFixed(2) %></td>
-          <td>
+<td>S/ <%= parseFloat(deuda.total_deuda || 0).toFixed(2) %></td>          <td>
             <a href="/deudas/cliente/<%= deuda.id_cliente %>" class="btn btn-sm btn-info">Ver</a>
             <a href="/deudas/pagar/<%= deuda.id_cliente %>" class="btn btn-sm btn-success">Registrar Pago</a>
           </td>

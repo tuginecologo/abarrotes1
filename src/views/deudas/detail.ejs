@@ -4,8 +4,8 @@
 <div class="card">
   <div class="card-body">
     <p><strong>ID Cliente:</strong> <%= cliente.id_cliente %></p>
-    <p><strong>Deuda Actual:</strong> S/ <%= deuda.toFixed(2) %></p>
-    <p><strong>Total Pagado:</strong> S/ <%= pagos.reduce((sum, p) => sum + p.monto_pago, 0).toFixed(2) %></p>
+    <p><strong>Deuda Actual:</strong> S/ <%= Number(deuda).toFixed(2) %></p>
+    <p><strong>Total Pagado:</strong> S/ <%= pagos.reduce((sum, p) => sum + parseFloat(p.monto_pago || 0), 0).toFixed(2) %></p>
   </div>
 </div>
 
@@ -26,7 +26,7 @@
       <% pagos.forEach(pago => { %>
         <tr>
           <td><%= pago.fecha_pago.toLocaleDateString() %></td>
-          <td>S/ <%= pago.monto_pago.toFixed(2) %></td>
+          <td>S/ <%= parseFloat(pago.monto_pago || 0).toFixed(2) %></td>
           <td><%= pago.observacion || '-' %></td>
           <td><%= pago.id_venta ? 'Venta #' + pago.id_venta : '-' %></td>
         </tr>

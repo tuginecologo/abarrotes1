@@ -1,12 +1,12 @@
 <%- include('../partials/header') %>
 <h1>Registrar Pago - <%= cliente.nombres %> <%= cliente.apellidos %></h1>
-<p><strong>Deuda actual:</strong> S/ <%= deuda.toFixed(2) %></p>
+<p><strong>Deuda actual:</strong> S/ <%= Number(deuda).toFixed(2) %></p>
 
 <form action="/deudas/pagar" method="POST">
   <input type="hidden" name="id_cliente" value="<%= cliente.id_cliente %>">
   <div class="form-group">
     <label for="monto">Monto a pagar (S/)</label>
-    <input type="number" step="0.01" min="0.01" max="<%= deuda %>" class="form-control" id="monto" name="monto" required>
+    <input type="number" step="0.01" min="0.01" max="<%= Number(deuda) %>" class="form-control" id="monto" name="monto" required>
   </div>
   <div class="form-group">
     <label for="observacion">Observación (opcional)</label>
