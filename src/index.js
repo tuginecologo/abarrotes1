@@ -137,6 +137,7 @@ app.get('/verify-static', (req, res) => {
 // Import and use routes
 const routes = [
   require('./routes/home'),
+  require('./routes/deudaRoutes'),
   require('./routes/productoRoutes'),
   require('./routes/cargoRoutes'),
   require('./routes/empleadoRoutes'),

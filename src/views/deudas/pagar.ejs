@@ -1,0 +1,22 @@
+<%- include('../partials/header') %>
+<h1>Registrar Pago - <%= cliente.nombres %> <%= cliente.apellidos %></h1>
+<p><strong>Deuda actual:</strong> S/ <%= deuda.toFixed(2) %></p>
+
+<form action="/deudas/pagar" method="POST">
+  <input type="hidden" name="id_cliente" value="<%= cliente.id_cliente %>">
+  <div class="form-group">
+    <label for="monto">Monto a pagar (S/)</label>
+    <input type="number" step="0.01" min="0.01" max="<%= deuda %>" class="form-control" id="monto" name="monto" required>
+  </div>
+  <div class="form-group">
+    <label for="observacion">Observación (opcional)</label>
+    <input type="text" class="form-control" id="observacion" name="observacion" placeholder="Ej: Pago parcial">
+  </div>
+  <div class="form-group">
+    <label for="id_venta">ID de Venta asociada (opcional)</label>
+    <input type="number" class="form-control" id="id_venta" name="id_venta" placeholder="Número de venta">
+  </div>
+  <button type="submit" class="btn btn-success">Registrar Pago</button>
+  <a href="/deudas/cliente/<%= cliente.id_cliente %>" class="btn btn-secondary">Cancelar</a>
+</form>
+<%- include('../partials/footer') %>
