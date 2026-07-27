@@ -29,14 +29,11 @@
           <td>S/ <%= pago.monto_pago.toFixed(2) %></td>
           <td><%= pago.observacion || '-' %></td>
           <td>
-            <!-- Solo mostrar botón de deshacer si el usuario tiene rol admin (0 o 1) -->
-            <% if (user && (user.rol === '0' || user.rol === '1')) { %>
-              <form action="/deudas/pagar/revertir/<%= pago.id_pago %>" method="POST" style="display:inline;">
-                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de revertir este pago? La deuda se restituirá.')">
-                  <i class="fas fa-undo"></i> Deshacer
-                </button>
-              </form>
-            <% } %>
+            <form action="/deudas/pagar/revertir/<%= pago.id_pago %>" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de revertir este pago? La deuda se restituirá.')">
+                <i class="fas fa-undo"></i> Deshacer
+              </button>
+            </form>
           </td>
         </tr>
       <% }) %>
