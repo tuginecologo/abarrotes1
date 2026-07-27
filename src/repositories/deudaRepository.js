@@ -69,4 +69,4 @@ module.exports = {
       [monto, id_cliente]
     );
   }
-};
+}
