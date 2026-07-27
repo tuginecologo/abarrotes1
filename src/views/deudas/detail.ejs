@@ -5,7 +5,7 @@
   <div class="card-body">
     <p><strong>ID Cliente:</strong> <%= cliente.id_cliente %></p>
     <p><strong>Deuda Actual:</strong> S/ <%= Number(deuda).toFixed(2) %></p>
-    <p><strong>Total Pagado:</strong> S/ <%= pagos.reduce((sum, p) => sum + parseFloat(p.monto_pago || 0), 0).toFixed(2) %></p>
+    <p><strong>Total Pagado:</strong> S/ <%= pagos.reduce((sum, p) => sum + p.monto_pago, 0).toFixed(2) %></p>
   </div>
 </div>
 
@@ -16,7 +16,7 @@
       <th>Fecha</th>
       <th>Monto</th>
       <th>Observación</th>
-      <th>Venta Asociada</th>
+      <th>Acciones</th>
     </tr>
   </thead>
   <tbody>
@@ -25,10 +25,19 @@
     <% } else { %>
       <% pagos.forEach(pago => { %>
         <tr>
-          <td><%= pago.fecha_pago.toLocaleDateString() %></td>
-          <td>S/ <%= parseFloat(pago.monto_pago || 0).toFixed(2) %></td>
+          <td><%= pago.fecha_pago.toLocaleDateString('es-PE') %></td>
+          <td>S/ <%= pago.monto_pago.toFixed(2) %></td>
           <td><%= pago.observacion || '-' %></td>
-          <td><%= pago.id_venta ? 'Venta #' + pago.id_venta : '-' %></td>
+          <td>
+            <!-- Solo mostrar botón de deshacer si el usuario tiene rol admin (0 o 1) -->
+            <% if (req.user && (req.user.rol === '0' || req.user.rol === '1')) { %>
+              <form action="/deudas/pagar/revertir/<%= pago.id_pago %>" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Está seguro de revertir este pago? La deuda se restituirá.')">
+                  <i class="fas fa-undo"></i> Deshacer
+                </button>
+              </form>
+            <% } %>
+          </td>
         </tr>
       <% }) %>
     <% } %>

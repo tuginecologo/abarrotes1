@@ -23,7 +23,7 @@ module.exports = {
 
   getPagosCliente: async (id_cliente) => {
     const [rows] = await pool.query(
-      `SELECT id_pago, monto_pago, fecha_pago, observacion, id_venta
+      `SELECT id_pago, monto_pago, fecha_pago, observacion
        FROM pagos_cliente
        WHERE id_cliente = ?
        ORDER BY fecha_pago DESC`,
@@ -32,11 +32,11 @@ module.exports = {
     return rows;
   },
 
-  insertPago: async (id_cliente, monto, observacion, id_venta, conn) => {
+  insertPago: async (id_cliente, monto, observacion, conn) => {
     const [result] = await conn.query(
-      `INSERT INTO pagos_cliente (id_cliente, monto_pago, fecha_pago, observacion, id_venta)
-       VALUES (?, ?, ?, ?, ?)`,
-      [id_cliente, monto, new Date(), observacion, id_venta]
+      `INSERT INTO pagos_cliente (id_cliente, monto_pago, fecha_pago, observacion)
+       VALUES (?, ?, ?, ?)`,
+      [id_cliente, monto, new Date(), observacion]
     );
     return result.insertId;
   },
@@ -46,6 +46,26 @@ module.exports = {
       `UPDATE deuda_cliente 
        SET total_deuda = total_deuda - ? 
        WHERE id_cliente = ?`,
+      [monto, id_cliente]
+    );
+  },
+
+  // ---- NUEVOS MÉTODOS PARA REVERTIR ----
+  getPagoById: async (id_pago, conn = pool) => {
+    const [rows] = await conn.query(
+      'SELECT id_pago, id_cliente, monto_pago FROM pagos_cliente WHERE id_pago = ?',
+      [id_pago]
+    );
+    return rows[0];
+  },
+
+  eliminarPago: async (id_pago, conn) => {
+    await conn.query('DELETE FROM pagos_cliente WHERE id_pago = ?', [id_pago]);
+  },
+
+  aumentarDeuda: async (id_cliente, monto, conn) => {
+    await conn.query(
+      'UPDATE deuda_cliente SET total_deuda = total_deuda + ? WHERE id_cliente = ?',
       [monto, id_cliente]
     );
   }

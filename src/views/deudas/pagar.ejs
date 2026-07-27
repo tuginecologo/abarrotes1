@@ -12,10 +12,6 @@
     <label for="observacion">Observación (opcional)</label>
     <input type="text" class="form-control" id="observacion" name="observacion" placeholder="Ej: Pago parcial">
   </div>
-  <div class="form-group">
-    <label for="id_venta">ID de Venta asociada (opcional)</label>
-    <input type="number" class="form-control" id="id_venta" name="id_venta" placeholder="Número de venta">
-  </div>
   <button type="submit" class="btn btn-success">Registrar Pago</button>
   <a href="/deudas/cliente/<%= cliente.id_cliente %>" class="btn btn-secondary">Cancelar</a>
 </form>
