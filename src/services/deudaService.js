@@ -40,25 +40,29 @@ module.exports = {
   },
 
   // NUEVO: Revertir un pago
-  revertirPago: async (id_pago) => {
-    const connection = await pool.getConnection();
-    try {
-      await connection.beginTransaction();
-      // Obtener el pago
-      const pago = await deudaRepository.getPagoById(id_pago, connection);
-      if (!pago) {
-        throw new Error('Pago no encontrado');
-      }
-      // Eliminar el registro de pago
-      await deudaRepository.eliminarPago(id_pago, connection);
-      // Restaurar la deuda (sumar el monto)
-      await deudaRepository.aumentarDeuda(pago.id_cliente, pago.monto_pago, connection);
-      await connection.commit();
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
+// En deudaService.js - método revertirPago
+revertirPago: async (id_pago) => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    // Obtener el pago
+    const pago = await deudaRepository.getPagoById(id_pago, connection);
+    if (!pago) {
+      throw new Error('Pago no encontrado');
     }
+    // Guardar id_cliente antes de eliminar
+    const id_cliente = pago.id_cliente;
+    // Eliminar el registro de pago
+    await deudaRepository.eliminarPago(id_pago, connection);
+    // Restaurar la deuda (sumar el monto)
+    await deudaRepository.aumentarDeuda(id_cliente, pago.monto_pago, connection);
+    await connection.commit();
+    return id_cliente; // <--- Retorna el id del cliente
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
   }
+}
 };

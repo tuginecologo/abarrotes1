@@ -64,16 +64,19 @@ module.exports = {
   },
 
   // NUEVO: Revertir un pago
-  revertirPago: async (req, res, next) => {
-    try {
-      const id_pago = req.params.id_pago;
-      await deudaService.revertirPago(id_pago);
-      req.flash('success', 'Pago revertido correctamente');
-      res.redirect('back');
-    } catch (err) {
-      console.error('Error revirtiendo pago:', err);
-      req.flash('error', err.message || 'Error al revertir el pago');
-      res.redirect('back');
-    }
+// En deudaController.js - método revertirPago
+revertirPago: async (req, res, next) => {
+  try {
+    const id_pago = req.params.id_pago;
+    const id_cliente = await deudaService.revertirPago(id_pago); // <--- Obtiene el id_cliente
+    req.flash('success', 'Pago revertido correctamente');
+    res.redirect(`/deudas/cliente/${id_cliente}`); // <--- Redirige al detalle del cliente
+  } catch (err) {
+    console.error('Error revirtiendo pago:', err);
+    req.flash('error', err.message || 'Error al revertir el pago');
+    // Redirige al referer o a la lista de deudas como fallback
+    const referer = req.get('referer') || '/deudas';
+    res.redirect(referer);
   }
+}
 };
