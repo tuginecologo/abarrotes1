@@ -7,6 +7,7 @@ module.exports = {
       case '3': return 'Plin';
       case '4': return 'Transferencia';
       case '5': return 'Pago Mixto';
+      case '6': return 'Por cobrar';
       default: return 'Desconocido';
       }
     }
