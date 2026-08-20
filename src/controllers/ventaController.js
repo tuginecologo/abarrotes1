@@ -50,7 +50,7 @@ showNewForm: async (req, res, next) => {
     next(err);
   }
 },
-=======
+
   showNewForm: async (req, res, next) => {
     try {
       const options = await ventaService.getDropdownOptions();
@@ -70,7 +70,7 @@ showNewForm: async (req, res, next) => {
       next(err);
     }
   },
->>>>>>> 6f2dcfbb37a2b5e46993b16744a907526cc493f8
+
 
   // Create new sale (modified for individual discounts)
   createVenta: async (req, res, next) => {
