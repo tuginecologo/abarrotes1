@@ -20,25 +20,35 @@ module.exports = {
   },
 
   // Show new sale form
-  showNewForm: async (req, res, next) => {
-    try {
-      const options = await ventaService.getDropdownOptions();
-      const userDni = req.user?.dni || '';
-      
-      res.render('ventas/new', { 
-        options,
-        venta: {
-          dnicomp: '',
-          dnivend: userDni,
-          productos: [],
-          mediodepago: '',
-          noperacion: ''
-        }
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
+showNewForm: async (req, res, next) => {
+  try {
+    const options = await ventaService.getDropdownOptions();
+    
+    // Obtener el DNI del usuario logueado desde la sesión
+    const sessionUserDni = req.session?.user?.dni || '';
+    
+    // Verificar si ese DNI está en la lista de empleados disponibles
+    const isEmployeeInOptions = options.empleados.some(emp => emp.dni === sessionUserDni);
+    
+    // Si el usuario logueado es un empleado, usarlo; si no, usar el primer empleado
+    const defaultDnivend = isEmployeeInOptions 
+      ? sessionUserDni 
+      : (options.empleados.length > 0 ? options.empleados[0].dni : '');
+    
+    res.render('ventas/new', { 
+      options,
+      venta: {
+        dnicomp: '',
+        dnivend: defaultDnivend,
+        productos: [],
+        mediodepago: '',
+        noperacion: ''
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+},
 
   // Create new sale (modified for individual discounts)
   createVenta: async (req, res, next) => {
