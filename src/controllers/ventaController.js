@@ -20,6 +20,7 @@ module.exports = {
   },
 
   // Show new sale form
+
 showNewForm: async (req, res, next) => {
   try {
     const options = await ventaService.getDropdownOptions();
@@ -49,11 +50,32 @@ showNewForm: async (req, res, next) => {
     next(err);
   }
 },
+=======
+  showNewForm: async (req, res, next) => {
+    try {
+      const options = await ventaService.getDropdownOptions();
+      const userDni = req.user?.dni || '';
+      
+      res.render('ventas/new', { 
+        options,
+        venta: {
+          id_cliente: '',
+          dnivend: userDni,
+          productos: [],
+          mediodepago: '',
+          noperacion: ''
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+>>>>>>> 6f2dcfbb37a2b5e46993b16744a907526cc493f8
 
   // Create new sale (modified for individual discounts)
   createVenta: async (req, res, next) => {
     try {
-      const { dnicomp, dnivend, fecha, mediodepago, payment_details, productos } = req.body;
+      const { id_cliente, dnivend, fecha, mediodepago, payment_details, productos } = req.body;
       let { noperacion } = req.body;
       const options = await ventaService.getDropdownOptions();
     
@@ -190,7 +212,7 @@ showNewForm: async (req, res, next) => {
       // Create the sale (descuento global eliminado)
       const ventaId = await ventaService.createVenta({
         dnivend,
-        dnicomp,
+        id_cliente,
         fecha: fecha || new Date().toISOString().split('T')[0],
         mediodepago,
         noperacion,

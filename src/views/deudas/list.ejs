@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+<h1>Clientes con Deuda</h1>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Cliente</th>
+      <th>Deuda Total</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (deudas.length === 0) { %>
+      <tr><td colspan="4">No hay clientes con deuda pendiente.</td></tr>
+    <% } else { %>
+      <% deudas.forEach(deuda => { %>
+        <tr>
+          <td><%= deuda.id_cliente %></td>
+          <td><%= deuda.nombres %> <%= deuda.apellidos %></td>
+<td>S/ <%= parseFloat(deuda.total_deuda || 0).toFixed(2) %></td>          <td>
+            <a href="/deudas/cliente/<%= deuda.id_cliente %>" class="btn btn-sm btn-info">Ver</a>
+            <a href="/deudas/pagar/<%= deuda.id_cliente %>" class="btn btn-sm btn-success">Registrar Pago</a>
+          </td>
+        </tr>
+      <% }) %>
+    <% } %>
+  </tbody>
+</table>
+
+<a href="/dashboard" class="btn">Volver al Dashboard</a>
+<%- include('../partials/footer') %>

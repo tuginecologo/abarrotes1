@@ -43,6 +43,7 @@ app.use(flash());
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success');
   res.locals.error_msg = req.flash('error');
+  res.locals.user = req.user || null;
   next();
 });
 
@@ -137,6 +138,7 @@ app.get('/verify-static', (req, res) => {
 // Import and use routes
 const routes = [
   require('./routes/home'),
+  require('./routes/deudaRoutes'),
   require('./routes/productoRoutes'),
   require('./routes/cargoRoutes'),
   require('./routes/empleadoRoutes'),

@@ -29,7 +29,7 @@ module.exports = {
          (SELECT SUM(cantidad) FROM detalle_venta WHERE id_venta = v.id_venta) as items_count
        FROM venta v
        JOIN empleado e ON v.dnivend = e.dni
-       JOIN cliente c ON v.dnicomp = c.dni
+       JOIN cliente c ON v.id_cliente = c.id_cliente
        JOIN monto_venta m ON v.id_venta = m.id_venta
        ORDER BY v.id_venta DESC
        LIMIT ? OFFSET ?`,
@@ -46,7 +46,7 @@ module.exports = {
   },
 
   getClientes: async () => {
-    const [clientes] = await pool.query('SELECT dni, CONCAT(nombres, " ", apellidos) as nombre FROM cliente ORDER BY nombre');
+    const [clientes] = await pool.query('SELECT id_cliente, CONCAT(nombres, " ", apellidos) as nombre FROM cliente ORDER BY nombre');
     return clientes;
   },
 
@@ -139,7 +139,7 @@ module.exports = {
            v.payment_details
          FROM venta v
          JOIN empleado e ON v.dnivend = e.dni
-         JOIN cliente c ON v.dnicomp = c.dni
+         JOIN cliente c ON v.id_cliente = c.id_cliente
          JOIN monto_venta m ON v.id_venta = m.id_venta
          WHERE v.id_venta = ?`,
         [id]
@@ -304,7 +304,7 @@ module.exports = {
            v.mediodepago
          FROM venta v
          JOIN empleado e ON v.dnivend = e.dni
-         JOIN cliente c ON v.dnicomp = c.dni
+         JOIN cliente c ON v.id_cliente = c.id_cliente
          JOIN monto_venta m ON v.id_venta = m.id_venta
          ORDER BY v.id_venta DESC`
       );

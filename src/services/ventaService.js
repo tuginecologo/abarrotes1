@@ -98,11 +98,17 @@ module.exports = {
         paymentDetailsToStore = null;
       }
 
+      // Validar noperacion solo para pagos electrónicos (2,3,4) y NO para "por pagar" (6)
+      if (ventaData.mediodepago !== '6') {
+        // La validación de noperacion ya se hace en el controlador, pero la dejamos aquí por si acaso
+        // No hacemos nada extra, porque el controlador ya valida.
+      }
+
       // 1. Create venta record (sin descuento global)
       const [ventaResult] = await connection.query(
-        `INSERT INTO venta (dnivend, dnicomp, fecha, mediodepago, noperacion, payment_details)
+        `INSERT INTO venta (dnivend, id_cliente, fecha, mediodepago, noperacion, payment_details)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [ventaData.dnivend, ventaData.dnicomp, ventaData.fecha, 
+        [ventaData.dnivend, ventaData.id_cliente, ventaData.fecha, 
          ventaData.mediodepago, noperacionToStore, paymentDetailsToStore]
       );
       
@@ -172,6 +178,16 @@ module.exports = {
         [totalVenta, id_venta]
       );
 
+      // 4. Si es "por pagar" (método 6), actualizar deuda del cliente
+      if (ventaData.mediodepago === '6') {
+        await connection.query(
+          `INSERT INTO deuda_cliente (id_cliente, total_deuda) 
+           VALUES (?, ?) 
+           ON DUPLICATE KEY UPDATE total_deuda = total_deuda + ?`,
+          [ventaData.id_cliente, totalVenta, totalVenta]
+        );
+      }
+
       await connection.commit();
       return id_venta;
     } catch (err) {
@@ -191,17 +207,15 @@ module.exports = {
       }
       
       // Get individual discounts for each detail
-// En ventaService.js - dentro de getVentaDetails
-for (const detalle of venta.detalles) {
-  const [discountRows] = await pool.query(
-    'SELECT monto_descuento FROM descuento_individual WHERE id_detalle = ?',
-    [detalle.id_detalle]
-  );
-  // Convertir a número
-  detalle.precio = Number(detalle.precio);
-  detalle.descuento = discountRows.length > 0 ? Number(discountRows[0].monto_descuento) : 0;
-  detalle.precio_original = detalle.precio + detalle.descuento;
-}
+      for (const detalle of venta.detalles) {
+        const [discountRows] = await pool.query(
+          'SELECT monto_descuento FROM descuento_individual WHERE id_detalle = ?',
+          [detalle.id_detalle]
+        );
+        detalle.precio = Number(detalle.precio);
+        detalle.descuento = discountRows.length > 0 ? Number(discountRows[0].monto_descuento) : 0;
+        detalle.precio_original = detalle.precio + detalle.descuento;
+      }
       
       return venta;
     } catch (error) {

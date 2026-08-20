@@ -1,19 +1,20 @@
 const pool = require('../config/database');
 
 module.exports = {
-  // Get paginated clients
+  // Paginación y búsqueda (busca por nombres/apellidos)
   getClientes: async (page = 1, limit = 10, search = '') => {
     const offset = (page - 1) * limit;
     const [rows] = await pool.query(
-      `SELECT * FROM cliente 
-       WHERE dni LIKE ? OR nombres LIKE ? OR apellidos LIKE ?
+      `SELECT id_cliente, nombres, apellidos, sexo 
+       FROM cliente 
+       WHERE nombres LIKE ? OR apellidos LIKE ?
        LIMIT ? OFFSET ?`,
-      [`%${search}%`, `%${search}%`, `%${search}%`, limit, offset]
+      [`%${search}%`, `%${search}%`, limit, offset]
     );
     const [count] = await pool.query(
       `SELECT COUNT(*) as total FROM cliente 
-       WHERE dni LIKE ? OR nombres LIKE ? OR apellidos LIKE ?`,
-      [`%${search}%`, `%${search}%`, `%${search}%`]
+       WHERE nombres LIKE ? OR apellidos LIKE ?`,
+      [`%${search}%`, `%${search}%`]
     );
     return { 
       clientes: rows, 
@@ -23,43 +24,40 @@ module.exports = {
     };
   },
 
-  // Get single client by DNI
-  getClienteByDni: async (dni) => {
-    const [rows] = await pool.query('SELECT * FROM cliente WHERE dni = ?', [dni]);
+  // Obtener cliente por ID
+  getClienteById: async (id) => {
+    const [rows] = await pool.query('SELECT * FROM cliente WHERE id_cliente = ?', [id]);
     return rows[0];
   },
 
-  // Create new client
-  createCliente: async (dni, nombres, apellidos, sexo) => {
+  // Crear cliente (sin dni)
+  createCliente: async (nombres, apellidos, sexo) => {
     const [result] = await pool.query(
-      `INSERT INTO cliente (dni, nombres, apellidos, sexo) 
-       VALUES (?, ?, ?, ?)`,
-      [dni, nombres, apellidos, sexo]
+      `INSERT INTO cliente (nombres, apellidos, sexo) 
+       VALUES (?, ?, ?)`,
+      [nombres, apellidos, sexo]
     );
     return result.insertId;
   },
-  
-  // Update client
-  updateCliente: async (dni, nombres, apellidos, sexo) => {
+
+  // Actualizar cliente por ID
+  updateCliente: async (id, nombres, apellidos, sexo) => {
     await pool.query(
-      'UPDATE cliente SET nombres = ?, apellidos = ?, sexo = ? WHERE dni = ?',
-      [nombres, apellidos, sexo, dni]
+      'UPDATE cliente SET nombres = ?, apellidos = ?, sexo = ? WHERE id_cliente = ?',
+      [nombres, apellidos, sexo, id]
     );
   },
 
-  // Delete client
-  deleteCliente: async (dni) => {
-    await pool.query('DELETE FROM cliente WHERE dni = ?', [dni]);
+  // Eliminar cliente por ID
+  deleteCliente: async (id) => {
+    await pool.query('DELETE FROM cliente WHERE id_cliente = ?', [id]);
   },
 
-  // Bulk delete clients
-  // bulkDeleteClientes: async (dnis) => {
-  //   await pool.query('DELETE FROM cliente WHERE dni IN (?)', [dnis]);
-  // },
-
-  // Export to Excel
+  // Obtener todos los clientes (para exportar)
   getAllClientes: async () => {
-    const [rows] = await pool.query('SELECT * FROM cliente ORDER BY apellidos, nombres');
+    const [rows] = await pool.query(
+      'SELECT id_cliente, nombres, apellidos, sexo FROM cliente ORDER BY apellidos, nombres'
+    );
     return rows;
   }
 };
