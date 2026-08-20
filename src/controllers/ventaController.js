@@ -51,26 +51,6 @@ showNewForm: async (req, res, next) => {
   }
 },
 
-  showNewForm: async (req, res, next) => {
-    try {
-      const options = await ventaService.getDropdownOptions();
-      const userDni = req.user?.dni || '';
-      
-      res.render('ventas/new', { 
-        options,
-        venta: {
-          id_cliente: '',
-          dnivend: userDni,
-          productos: [],
-          mediodepago: '',
-          noperacion: ''
-        }
-      });
-    } catch (err) {
-      next(err);
-    }
-  },
-
 
   // Create new sale (modified for individual discounts)
   createVenta: async (req, res, next) => {
