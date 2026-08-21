@@ -1,0 +1,45 @@
+<%- include('../partials/header') %>
+
+<h1>Ganancias Mensuales</h1>
+
+<div class="mb-3">
+  <a href="/ganancias/exportar" class="btn btn-success">
+    <i class="fas fa-file-excel"></i> Exportar a Excel
+  </a>
+  <a href="/dashboard" class="btn btn-secondary">Volver al Dashboard</a>
+</div>
+
+<% if (ganancias.length === 0) { %>
+  <div class="alert alert-info">No hay datos para mostrar.</div>
+<% } else { %>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Mes</th>
+          <th>Ventas Totales (S/)</th>
+          <th>Compras Totales (S/)</th>
+          <th>Ventas por Cobrar (S/)</th>
+          <th>Pagos Recibidos (S/)</th>
+          <th>Ganancia Neta (S/)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% ganancias.forEach(g => { %>
+          <tr>
+            <td><%= g.mes %></td>
+            <td>S/ <%= Number(g.total_ventas).toFixed(2) %></td>
+            <td>S/ <%= Number(g.total_compras).toFixed(2) %></td>
+            <td>S/ <%= Number(g.total_credito_ventas).toFixed(2) %></td>
+            <td>S/ <%= Number(g.total_pagos_credito).toFixed(2) %></td>
+            <td class="font-weight-bold <%= g.ganancia_neta >= 0 ? 'text-success' : 'text-danger' %>">
+              S/ <%= Number(g.ganancia_neta).toFixed(2) %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<%- include('../partials/footer') %>

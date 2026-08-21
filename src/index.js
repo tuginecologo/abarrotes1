@@ -149,6 +149,7 @@ const routes = [
   require('./routes/clienteRoutes'),
   require('./routes/precioRoutes'),
   require('./routes/ventaRoutes'),
+  require('./routes/gananciaRoutes'),
   require('./routes/accesoRoutes'),
   require('./routes/incidenciaRoutes'),
   require('./routes/health') 
