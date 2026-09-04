@@ -252,8 +252,15 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    if (cantidad > stock) {
-      alert(`No hay suficiente stock. Disponible: ${stock}`);
+    // Verificar stock acumulado para este producto
+    const existingRows = document.querySelectorAll(`#productosTable tbody tr[data-id="${idProducto}"]`);
+    let totalInTable = 0;
+    existingRows.forEach(row => {
+      totalInTable += parseInt(row.querySelector('.cantidad').textContent);
+    });
+
+    if (totalInTable + cantidad > stock) {
+      alert(`No hay suficiente stock. Ya tiene ${totalInTable} en carrito, disponible: ${stock}`);
       return;
     }
 
@@ -265,45 +272,34 @@ document.addEventListener('DOMContentLoaded', function() {
     const precioFinal = precio - descuento;
     const subtotal = precioFinal * cantidad;
 
-    const existingRow = document.querySelector(`#productosTable tr[data-id="${idProducto}"]`);
-    if (existingRow) {
-      const existingCantidad = parseInt(existingRow.querySelector('.cantidad').textContent);
-      const newCantidad = existingCantidad + cantidad;
-      if (newCantidad > stock) {
-        alert(`No hay suficiente stock para esta cantidad adicional. Disponible: ${stock - existingCantidad}`);
-        return;
-      }
-      existingRow.querySelector('.cantidad').textContent = newCantidad;
-      existingRow.querySelector('.subtotal').textContent = `S/ ${(precioFinal * newCantidad).toFixed(2)}`;
-    } else {
-      const tbody = document.querySelector('#productosTable tbody');
-      const row = document.createElement('tr');
-      row.dataset.id = idProducto;
-      
-      row.innerHTML = `
-        <td>${idProducto}</td>
-        <td>${nombreProducto}</td>
-        <td>${marca}</td>
-        <td>${variante}</td>
-        <td class="precio-original">S/ ${precio.toFixed(2)}</td>
-        <td class="descuento">S/ ${descuento.toFixed(2)}</td>
-        <td class="cantidad">${cantidad}</td>
-        <td class="subtotal">S/ ${subtotal.toFixed(2)}</td>
-        <td>
-          <button type="button" class="btn btn-sm btn-danger eliminar-producto">
-            <i class="fas fa-trash"></i>
-          </button>
-        </td>
-      `;
-      
-      tbody.appendChild(row);
-    }
+    // Crear siempre una nueva fila (sin fusionar)
+    const tbody = document.querySelector('#productosTable tbody');
+    const row = document.createElement('tr');
+    row.dataset.id = idProducto;
+    
+    row.innerHTML = `
+      <td>${idProducto}</td>
+      <td>${nombreProducto}</td>
+      <td>${marca}</td>
+      <td>${variante}</td>
+      <td class="precio-original">S/ ${precio.toFixed(2)}</td>
+      <td class="descuento">S/ ${descuento.toFixed(2)}</td>
+      <td class="cantidad">${cantidad}</td>
+      <td class="subtotal">S/ ${subtotal.toFixed(2)}</td>
+      <td>
+        <button type="button" class="btn btn-sm btn-danger eliminar-producto">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    `;
+    
+    tbody.appendChild(row);
 
     actualizarTotal();
     cantidadInput.value = 1;
     descuentoInput.value = 0;
     productoSelect.value = '';
-  }
+}
 
   function updatePaymentSummary() {
     const paymentMethod = mediodepagoSelect.value;
